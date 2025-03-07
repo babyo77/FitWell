@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
 import { useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 interface CameraCaptureProps {
   onCapture: (image: string) => void;
@@ -138,6 +139,7 @@ function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
 
 export default function BottomNav() {
   const { user } = useAuth();
+  const pathname = usePathname();
   const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -166,7 +168,12 @@ export default function BottomNav() {
     <>
       <nav className="fixed bottom-0 left-0 right-0 border-t bg-white border-gray-200">
         <div className="flex justify-around items-center h-16">
-          <Link href="/" className="flex flex-col items-center">
+          <Link
+            href="/"
+            className={`flex flex-col items-center ${
+              pathname === "/" ? "text-black" : "text-gray-400"
+            }`}
+          >
             <svg
               className="w-6 h-6"
               fill="none"
@@ -183,7 +190,12 @@ export default function BottomNav() {
             <span className="text-xs mt-1">Home</span>
           </Link>
 
-          <Link href="/diary" className="flex flex-col items-center">
+          <Link
+            href="/diary"
+            className={`flex flex-col items-center ${
+              pathname === "/diary" ? "text-black" : "text-gray-400"
+            }`}
+          >
             <svg
               className="w-6 h-6"
               fill="none"
@@ -261,7 +273,12 @@ export default function BottomNav() {
             </DrawerContent>
           </Drawer>
 
-          <Link href="/plans" className="flex flex-col items-center">
+          <Link
+            href="/plans"
+            className={`flex flex-col items-center ${
+              pathname === "/plans" ? "text-black" : "text-gray-400"
+            }`}
+          >
             <svg
               className="w-6 h-6"
               fill="none"
@@ -278,7 +295,12 @@ export default function BottomNav() {
             <span className="text-xs mt-1">Plans</span>
           </Link>
 
-          <Link href="/more" className="flex flex-col items-center">
+          <Link
+            href="/more"
+            className={`flex flex-col items-center ${
+              pathname === "/more" ? "text-black" : "text-gray-400"
+            }`}
+          >
             <svg
               className="w-6 h-6"
               fill="none"
