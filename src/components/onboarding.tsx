@@ -17,6 +17,8 @@ import {
   GraduationCap,
   Flame,
 } from "lucide-react";
+import { useAuth } from "@/context/auth-context";
+import UserType from "@/app/model/user-model";
 
 interface OnboardingData {
   goal: string;
@@ -31,6 +33,7 @@ interface OnboardingData {
 }
 
 export default function Onboarding() {
+  const { user, setUser } = useAuth();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState<OnboardingData>({
     goal: "",
@@ -63,10 +66,24 @@ export default function Onboarding() {
   const handleContinue = async () => {
     if (step === 7) {
       setLoading(true);
-      await fetch("/api/user", {
+      const res = await fetch("/api/user", {
         method: "PATCH",
-        body: JSON.stringify({ ...formData, onboarding: true }),
+        body: JSON.stringify({
+          ...formData,
+          onboarding: true,
+          uid: user?.uid,
+        }),
       });
+      if (res.ok) {
+        setUser(
+          (prev) =>
+            ({
+              ...prev,
+              ...formData,
+              onboarding: true,
+            } as UserType)
+        );
+      }
       setLoading(false);
       return;
     }
