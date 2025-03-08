@@ -2,9 +2,8 @@
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { SendIcon, ImagePlus } from "lucide-react"
+import { SendIcon, Mic, ImagePlus } from "lucide-react"
 import { useState, useRef, useEffect } from "react"
-import ReactMarkdown from 'react-markdown'
 
 export default function ChatPage() {
   // Static example messages
@@ -25,12 +24,15 @@ export default function ChatPage() {
   ])
 
   const [newMessage, setNewMessage] = useState("")
+  // Add ref for messages container
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
+  // Add scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
+  // Add useEffect to scroll on new messages
   useEffect(() => {
     scrollToBottom()
   }, [messages])
@@ -73,13 +75,11 @@ export default function ChatPage() {
                   : "bg-gray-100 text-black rounded-tl-none"
               }`}
             >
-              <ReactMarkdown className="whitespace-pre-wrap break-words prose prose-invert dark:prose-invert max-w-none">
-                {message.content}
-              </ReactMarkdown>
+              <p className="whitespace-pre-wrap break-words">{message.content}</p>
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} /> {/* Add scroll anchor */}
       </div>
 
       {/* Input area */}
@@ -102,7 +102,9 @@ export default function ChatPage() {
                 }
               }}
             />
-            
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Mic className="h-5 w-5 text-gray-500" />
+            </Button>
           </div>
 
           <Button
@@ -118,3 +120,4 @@ export default function ChatPage() {
     </div>
   )
 }
+
