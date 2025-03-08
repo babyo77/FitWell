@@ -188,9 +188,13 @@ export default function Onboarding() {
                   </h2>
                   <Input
                     type="number"
+                    min="0"
                     placeholder="Enter your age"
                     value={formData.age}
-                    onChange={(e) => updateFormData("age", e.target.value)}
+                    onChange={(e) => {
+                      const value = Math.max(0, Number(e.target.value));
+                      updateFormData("age", value.toString());
+                    }}
                     className="text-center text-lg h-12"
                   />
                 </div>
@@ -204,9 +208,13 @@ export default function Onboarding() {
                   <div className="relative">
                     <Input
                       type="number"
+                      min="0"
                       placeholder="Weight in kg"
                       value={formData.weight}
-                      onChange={(e) => updateFormData("weight", e.target.value)}
+                      onChange={(e) => {
+                        const value = Math.max(0, Number(e.target.value));
+                        updateFormData("weight", value.toString());
+                      }}
                       className="text-center text-lg h-12"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
@@ -252,9 +260,13 @@ export default function Onboarding() {
                   <div className="relative">
                     <Input
                       type="number"
+                      min="0"
                       placeholder="Height in Ft"
                       value={formData.height}
-                      onChange={(e) => updateFormData("height", e.target.value)}
+                      onChange={(e) => {
+                        const value = Math.max(0, Number(e.target.value));
+                        updateFormData("height", value.toString());
+                      }}
                       className="text-center text-lg h-12"
                     />
                     <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
