@@ -3,6 +3,7 @@ import { signInWithPopup, signOut } from "firebase/auth";
 import { auth, googleProvider } from "@/app/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,8 @@ export default function LoginPage() {
         });
         window.location.reload();
       }
-    } catch (error) {
+    } catch (error: any) {
+      toast.error(error?.message || "Something went wrong");
       console.log(error);
     } finally {
       setLoading(false);
@@ -29,7 +31,7 @@ export default function LoginPage() {
       <div className="w-full space-y-4 max-w-md p-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-semibold">FitWell</h1>
+          <h1 className="text-5xl font-semibold">FitWell</h1>
         </div>
 
         {/* Login Text */}

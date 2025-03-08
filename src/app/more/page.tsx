@@ -63,7 +63,7 @@ const profileSchema = z.object({
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfileSettingsPage() {
-  const { user } = useAuth();
+  const { user, setUser } = useAuth();
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -98,6 +98,17 @@ export default function ProfileSettingsPage() {
       });
       if (updatedUser.ok) {
         toast.success("Profile updated successfully");
+        setUser(
+          (prev) =>
+            ({
+              ...prev,
+              displayName: data.displayName,
+              age: data.age,
+              gender: data.gender,
+              height: data.height,
+              weight: data.weight,
+            } as unknown as typeof prev)
+        );
       } else {
         toast.error("Failed to update profile");
       }

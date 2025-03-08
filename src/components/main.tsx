@@ -14,9 +14,7 @@ function Main({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <main className=" max-h-[calc(100vh-4.1rem)] overflow-y-scroll">
-      {children}
-    </main>
+    <main className=" min-h-screen pb-20 overflow-y-scroll">{children}</main>
   );
 }
 

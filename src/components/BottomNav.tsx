@@ -10,130 +10,159 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
+  DrawerClose,
 } from "@/components/ui/drawer";
 import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import Webcam from "react-webcam";
+import { motion, AnimatePresence } from "framer-motion";
+import { FoodAnalysisDrawer, AnalysisResponse } from "./FoodAnalysisDrawer";
 
 interface CameraCaptureProps {
-  onCapture: (image: string) => void;
   onClose: () => void;
 }
 
-function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [stream, setStream] = useState<MediaStream | null>(null);
-  const [error, setError] = useState<string | null>(null);
+function CameraCapture({ onClose }: CameraCaptureProps) {
+  const webcamRef = useRef<Webcam>(null);
+  const [showDrawer, setShowDrawer] = useState(false);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(
+    null
+  );
 
-  const startCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-        audio: false,
-      });
-      setStream(stream);
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setError(null); // Clear any previous errors
-    } catch (err) {
-      console.error("Error accessing camera:", err);
-      setError(
-        "Unable to access camera. Please make sure you have granted camera permissions."
-      );
-    }
+  const videoConstraints = {
+    facingMode: { exact: "environment" },
+    width: { ideal: 1920 },
+    height: { ideal: 1080 },
   };
 
-  const stopCamera = () => {
-    if (stream) {
-      stream.getTracks().forEach((track) => track.stop());
-      setStream(null);
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current?.getScreenshot();
+    if (imageSrc) {
+      setCapturedImage(imageSrc);
+      setShowDrawer(true);
     }
-  };
-
-  const captureImage = () => {
-    if (videoRef.current) {
-      const canvas = document.createElement("canvas");
-      canvas.width = videoRef.current.videoWidth;
-      canvas.height = videoRef.current.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx?.drawImage(videoRef.current, 0, 0);
-      const imageData = canvas.toDataURL("image/jpeg");
-      onCapture(imageData);
-      stopCamera();
-      onClose();
-    }
-  };
-
-  useEffect(() => {
-    startCamera();
-    return () => stopCamera();
   }, []);
 
+  const handleAnalyze = async (imageData: string) => {
+    try {
+      setIsLoading(true);
+      const base64Response = await fetch(imageData);
+      const blob = await base64Response.blob();
+
+      const formData = new FormData();
+      formData.append("image", blob, "food.png");
+
+      const response = await fetch(
+        "https://fitwell-backend.onrender.com/calorie/analyze/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAnalysisResult({
+          calories_info: { foods: [] },
+          error: data.message || "Failed to analyze image",
+        });
+        return;
+      }
+
+      if (!data.calories_info?.foods?.length) {
+        setAnalysisResult({
+          calories_info: { foods: [] },
+          error: "No food detected in the image",
+        });
+        return;
+      }
+
+      setAnalysisResult(data);
+    } catch (error) {
+      setAnalysisResult({
+        calories_info: { foods: [] },
+        error: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setShowDrawer(false);
+    setCapturedImage(null);
+    setAnalysisResult(null);
+    onClose();
+  };
+
+  const handleRetake = () => {
+    setShowDrawer(false);
+    setCapturedImage(null);
+    setAnalysisResult(null);
+  };
+
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
-      <div className="relative flex-1">
-        {error ? (
-          <div className="absolute inset-0 flex items-center justify-center flex-col gap-4 p-4">
-            <div className="text-white text-center">
-              <svg
-                className="w-12 h-12 mx-auto mb-4 text-red-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <p className="text-lg font-semibold mb-2">Camera Error</p>
-              <p className="text-gray-300">{error}</p>
-            </div>
-            <Button
-              variant="outline"
-              className="bg-white text-black hover:bg-gray-200"
-              onClick={onClose}
-            >
-              Close
-            </Button>
-          </div>
-        ) : (
-          <video
-            ref={videoRef}
-            autoPlay
-            playsInline
-            className="w-full h-full object-cover"
-          />
-        )}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="absolute top-4 right-4 text-white"
-          onClick={() => {
-            stopCamera();
-            onClose();
-          }}
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 bg-black"
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.9 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Webcam
+          ref={webcamRef}
+          screenshotFormat="image/jpeg"
+          videoConstraints={videoConstraints}
+          className="h-full w-full object-cover"
+        />
+        <motion.button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-white z-10"
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
         >
           <X className="h-6 w-6" />
-        </Button>
-      </div>
-      {!error && (
-        <div className="p-4 bg-black">
-          <Button
-            variant="outline"
-            size="lg"
-            className="w-full bg-white"
-            onClick={captureImage}
-          >
-            <Camera className="mr-2 h-5 w-5" />
-            Capture
-          </Button>
-        </div>
-      )}
-    </div>
+        </motion.button>
+        <motion.button
+          onClick={capture}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full z-10"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ y: 100 }}
+          animate={{ y: 0 }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+          }}
+        >
+          Capture
+        </motion.button>
+      </motion.div>
+
+      <Drawer
+        open={showDrawer}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleRetake();
+          }
+        }}
+      >
+        <FoodAnalysisDrawer
+          image={capturedImage}
+          isLoading={isLoading}
+          analysisResult={analysisResult}
+          onRetake={handleRetake}
+          onAnalyze={handleAnalyze}
+          onClose={handleClose}
+        />
+      </Drawer>
+    </AnimatePresence>
   );
 }
 
@@ -142,11 +171,57 @@ export default function BottomNav() {
   const pathname = usePathname();
   const [showCamera, setShowCamera] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [showUploadDrawer, setShowUploadDrawer] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(
+    null
+  );
 
-  const handleImageCapture = (imageData: string) => {
-    // Handle the captured image data here
-    console.log("Captured image:", imageData);
-    // You can send this image to your server or process it further
+  const handleAnalyze = async (imageData: string) => {
+    try {
+      setIsUploading(true);
+      const base64Response = await fetch(imageData);
+      const blob = await base64Response.blob();
+
+      const formData = new FormData();
+      formData.append("image", blob, "food.png");
+
+      const response = await fetch(
+        "https://fitwell-backend.onrender.com/calorie/analyze/",
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAnalysisResult({
+          calories_info: { foods: [] },
+          error: data.message || "Failed to analyze image",
+        });
+        return;
+      }
+
+      if (!data.calories_info?.foods?.length) {
+        setAnalysisResult({
+          calories_info: { foods: [] },
+          error: "No food detected in the image",
+        });
+        return;
+      }
+
+      setAnalysisResult(data);
+    } catch (error) {
+      setAnalysisResult({
+        calories_info: { foods: [] },
+        error: "Something went wrong. Please try again.",
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -155,11 +230,19 @@ export default function BottomNav() {
       const reader = new FileReader();
       reader.onload = (e) => {
         const imageData = e.target?.result as string;
-        console.log("Uploaded image:", imageData);
-        // You can process the image data here
-        // It will be in base64 format, similar to the camera capture
+        setUploadedImage(imageData);
+        setShowUploadDrawer(true);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCloseUpload = () => {
+    setShowUploadDrawer(false);
+    setUploadedImage(null);
+    setAnalysisResult(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -241,15 +324,17 @@ export default function BottomNav() {
               </DrawerHeader>
               <div className="mx-auto w-full max-w-sm p-4 pt-0">
                 <div className="flex flex-col gap-4">
-                  <Button
-                    variant="outline"
-                    size="lg"
-                    className="w-full"
-                    onClick={() => setShowCamera(true)}
-                  >
-                    <Camera className="mr-2 h-5 w-5" />
-                    Scan
-                  </Button>
+                  <DrawerClose asChild>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full"
+                      onClick={() => setShowCamera(true)}
+                    >
+                      <Camera className="mr-2 h-5 w-5" />
+                      Scan
+                    </Button>
+                  </DrawerClose>
 
                   <input
                     type="file"
@@ -319,10 +404,29 @@ export default function BottomNav() {
         </div>
       </nav>
 
+      <Drawer
+        open={showUploadDrawer}
+        onOpenChange={(open) => {
+          if (!open) {
+            handleCloseUpload();
+          }
+        }}
+      >
+        <FoodAnalysisDrawer
+          image={uploadedImage}
+          isLoading={isUploading}
+          analysisResult={analysisResult}
+          onRetake={handleCloseUpload}
+          onAnalyze={handleAnalyze}
+          onClose={handleCloseUpload}
+        />
+      </Drawer>
+
       {showCamera && (
         <CameraCapture
-          onCapture={handleImageCapture}
-          onClose={() => setShowCamera(false)}
+          onClose={() => {
+            setShowCamera(false);
+          }}
         />
       )}
     </>
