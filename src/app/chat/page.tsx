@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
-import { SendIcon, ImagePlus } from 'lucide-react';
+import { SendIcon } from 'lucide-react';
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -151,9 +151,7 @@ export default function ChatPage() {
       {/* Input area */}
       <div className="border-t p-3 bg-white">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full">
-            <ImagePlus className="h-5 w-5 text-gray-500" />
-          </Button>
+          
 
           <div className="flex-1 flex items-center gap-2 border rounded-full px-4 py-2">
             <Input
