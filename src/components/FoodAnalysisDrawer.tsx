@@ -7,6 +7,15 @@ import {
   DrawerDescription,
 } from "@/components/ui/drawer";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useState } from "react";
+import { useAuth } from "@/context/auth-context";
 
 interface FoodItem {
   name: string;
@@ -42,17 +51,80 @@ export function FoodAnalysisDrawer({
   onAnalyze,
   onClose,
 }: FoodAnalysisDrawerProps) {
+  const { user, setCalories } = useAuth();
   const hasError = analysisResult?.error;
   const hasFood = (analysisResult?.calories_info?.foods?.length ?? 0) > 0;
 
-  const addFoodToDiary = () => {
+  const getDefaultMealType = () => {
+    const hour = new Date().getHours();
+    if (hour >= 4 && hour < 11) return "breakfast";
+    if (hour >= 11 && hour < 16) return "lunch";
+    if (hour >= 16 && hour < 22) return "dinner";
+    return "lunch";
+  };
+
+  const [mealType, setMealType] = useState(getDefaultMealType());
+
+  const addFoodToDiary = async () => {
     try {
-      console.log(analysisResult?.calories_info?.foods);
+      if (!user || !analysisResult?.calories_info?.foods) {
+        throw new Error("Missing user or food data");
+      }
+
+      const response = await fetch("/api/diary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          foods: analysisResult.calories_info.foods,
+          mealType: mealType,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to save food entry");
+      }
+
+      const data = await response.json();
+
+      setCalories((prev) => ({
+        ...prev,
+        intake: data.entry.totalCalories,
+        carbs: {
+          current: data.entry.breakfast
+            .concat(data.entry.lunch, data.entry.dinner)
+            .reduce(
+              (sum: number, food: any) => sum + parseInt(food.carbs || "0"),
+              0
+            ),
+        },
+        protein: {
+          current: data.entry.breakfast
+            .concat(data.entry.lunch, data.entry.dinner)
+            .reduce(
+              (sum: number, food: any) =>
+                sum + parseInt(food.protein || food.protien || "0"),
+              0
+            ),
+        },
+        fat: {
+          current: data.entry.breakfast
+            .concat(data.entry.lunch, data.entry.dinner)
+            .reduce(
+              (sum: number, food: any) => sum + parseInt(food.fat || "0"),
+              0
+            ),
+        },
+      }));
+
+      toast.success("Food added to your diary!");
+      onClose();
     } catch (error: any) {
       console.error(error);
       toast.error(error.message || "Failed to add food to diary");
-    } finally {
-      onClose();
     }
   };
   return (
@@ -281,12 +353,42 @@ export function FoodAnalysisDrawer({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{
                       delay:
+                        analysisResult.calories_info.foods.length * 0.15 + 0.1,
+                      duration: 0.4,
+                    }}
+                    className="mb-4"
+                  >
+                    <Select value={mealType} onValueChange={setMealType}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select meal type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="breakfast">Breakfast</SelectItem>
+                        <SelectItem value="lunch">Lunch</SelectItem>
+                        <SelectItem value="dinner">Dinner</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      delay:
                         analysisResult.calories_info.foods.length * 0.15 + 0.2,
                       duration: 0.4,
                     }}
+                    className="flex gap-3"
                   >
                     <Button
-                      className="w-full h-11 bg-black hover:bg-gray-800 text-sm"
+                      variant="outline"
+                      className="flex-1 h-11 text-sm"
+                      onClick={onClose}
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      className="flex-1 h-11 bg-black hover:bg-gray-800 text-sm"
                       onClick={addFoodToDiary}
                     >
                       Add to Diary

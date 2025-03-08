@@ -7,47 +7,81 @@ interface IFoodItem {
   protein: number;
   carbs: number;
   fat: number;
-  servingSize: string;
-  quantity: number;
-}
-
-// Interface for each meal type
-interface IMeal {
-  foods: IFoodItem[];
-  totalCalories: number;
+  count: string;
+  mealType: "breakfast" | "lunch" | "dinner";
 }
 
 // Main interface for the diary entry
 interface IDiaryEntry extends Document {
-  userId: mongoose.Types.ObjectId;
+  userId: string;
   date: Date;
-  calorieGoal: number;
-  breakfast: IMeal;
-  lunch: IMeal;
-  dinner: IMeal;
-  snacks: IMeal;
+  breakfast: IFoodItem[];
+  lunch: IFoodItem[];
+  dinner: IFoodItem[];
   totalCalories: number;
   createdAt: Date;
   updatedAt: Date;
 }
 
+// Add this interface for the summarized meal data
+interface IMealSummary {
+  totalCalories: number;
+  foods: IFoodItem[];
+}
+
+interface IDaySummary {
+  date: Date;
+  breakfast: IMealSummary;
+  lunch: IMealSummary;
+  dinner: IMealSummary;
+  totalCalories: number;
+}
+
+// Add this interface right before the DiaryEntry model definition
+interface DiaryEntryModel extends mongoose.Model<IDiaryEntry> {
+  findOrCreateEntry(userId: string, date?: Date): Promise<IDiaryEntry>;
+  getUserDayFood(userId: string, date?: Date): Promise<IDaySummary | null>;
+  getUserFoodRange(
+    userId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<IDiaryEntry[]>;
+}
+
 // Schema for food items
 const FoodItemSchema = new Schema({
-  name: { type: String, required: true },
-  calories: { type: Number, required: true },
-  protein: { type: Number, default: 0 },
-  carbs: { type: Number, default: 0 },
-  fat: { type: Number, default: 0 },
-  servingSize: { type: String, required: true },
-  quantity: { type: Number, required: true, default: 1 },
-});
-
-// Schema for meals
-const MealSchema = new Schema({
-  foods: [FoodItemSchema],
-  totalCalories: {
+  name: {
+    type: String,
+    required: true,
+  },
+  calories: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  protein: {
     type: Number,
     default: 0,
+    min: 0,
+  },
+  carbs: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  fat: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  count: {
+    type: String,
+    default: "1 serving",
+  },
+  mealType: {
+    type: String,
+    enum: ["breakfast", "lunch", "dinner"],
+    required: true,
   },
 });
 
@@ -55,36 +89,19 @@ const MealSchema = new Schema({
 const DiaryEntrySchema = new Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String,
       required: true,
+      index: true,
     },
     date: {
       type: Date,
       required: true,
       default: Date.now,
+      index: true,
     },
-    calorieGoal: {
-      type: Number,
-      required: true,
-      default: 2000,
-    },
-    breakfast: {
-      type: MealSchema,
-      default: { foods: [], totalCalories: 0 },
-    },
-    lunch: {
-      type: MealSchema,
-      default: { foods: [], totalCalories: 0 },
-    },
-    dinner: {
-      type: MealSchema,
-      default: { foods: [], totalCalories: 0 },
-    },
-    snacks: {
-      type: MealSchema,
-      default: { foods: [], totalCalories: 0 },
-    },
+    breakfast: [FoodItemSchema],
+    lunch: [FoodItemSchema],
+    dinner: [FoodItemSchema],
     totalCalories: {
       type: Number,
       default: 0,
@@ -95,44 +112,114 @@ const DiaryEntrySchema = new Schema(
   }
 );
 
-// Middleware to calculate total calories before saving
+// Calculate total calories before saving
 DiaryEntrySchema.pre("save", function (next) {
   const entry = this as IDiaryEntry;
 
-  // Calculate total calories for each meal
-  entry.breakfast.totalCalories = entry.breakfast.foods.reduce(
-    (sum, food) => sum + food.calories * food.quantity,
-    0
-  );
+  // Helper function to calculate calories for an array of foods
+  const calculateMealCalories = (foods: IFoodItem[]) =>
+    foods.reduce((sum, food) => sum + food.calories, 0);
 
-  entry.lunch.totalCalories = entry.lunch.foods.reduce(
-    (sum, food) => sum + food.calories * food.quantity,
-    0
-  );
+  // Calculate total calories from all meals
+  const breakfastCalories = calculateMealCalories(entry.breakfast);
+  const lunchCalories = calculateMealCalories(entry.lunch);
+  const dinnerCalories = calculateMealCalories(entry.dinner);
 
-  entry.dinner.totalCalories = entry.dinner.foods.reduce(
-    (sum, food) => sum + food.calories * food.quantity,
-    0
-  );
-
-  entry.snacks.totalCalories = entry.snacks.foods.reduce(
-    (sum, food) => sum + food.calories * food.quantity,
-    0
-  );
-
-  // Calculate total calories for the day
-  entry.totalCalories =
-    entry.breakfast.totalCalories +
-    entry.lunch.totalCalories +
-    entry.dinner.totalCalories +
-    entry.snacks.totalCalories;
+  entry.totalCalories = breakfastCalories + lunchCalories + dinnerCalories;
 
   next();
 });
 
-// Create and export the model
+// Add indexes for common queries
+DiaryEntrySchema.index({ userId: 1, date: -1 });
+
+// Static method to find or create a diary entry for a specific date
+DiaryEntrySchema.statics.findOrCreateEntry = async function (
+  userId: string,
+  date: Date = new Date()
+) {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
+
+  let entry = await this.findOne({
+    userId,
+    date: {
+      $gte: startOfDay,
+      $lt: endOfDay,
+    },
+  });
+
+  if (!entry) {
+    entry = new this({
+      userId,
+      date: startOfDay,
+    });
+  }
+
+  return entry;
+};
+
+// Add these static methods to DiaryEntrySchema
+DiaryEntrySchema.statics.getUserDayFood = async function (
+  userId: string,
+  date: Date = new Date()
+): Promise<IDaySummary | null> {
+  const startOfDay = new Date(date);
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const endOfDay = new Date(startOfDay);
+  endOfDay.setDate(endOfDay.getDate() + 1);
+
+  const entry = await this.findOne({
+    userId,
+    date: {
+      $gte: startOfDay,
+      $lt: endOfDay,
+    },
+  });
+
+  if (!entry) {
+    return null;
+  }
+
+  // Calculate totals for each meal
+  const calculateMealSummary = (foods: IFoodItem[]): IMealSummary => ({
+    totalCalories: foods.reduce((sum, food) => sum + food.calories, 0),
+    foods,
+  });
+
+  return {
+    date: entry.date,
+    breakfast: calculateMealSummary(entry.breakfast),
+    lunch: calculateMealSummary(entry.lunch),
+    dinner: calculateMealSummary(entry.dinner),
+    totalCalories: entry.totalCalories,
+  };
+};
+
+// Method to get food diary for a date range
+DiaryEntrySchema.statics.getUserFoodRange = async function (
+  userId: string,
+  startDate: Date,
+  endDate: Date
+) {
+  const entries = await this.find({
+    userId,
+    date: {
+      $gte: startDate,
+      $lte: endDate,
+    },
+  }).sort({ date: 1 });
+
+  return entries;
+};
+
+// Modify the model creation line to use the interface
 const DiaryEntry =
-  mongoose.models.DiaryEntry ||
-  mongoose.model<IDiaryEntry>("DiaryEntry", DiaryEntrySchema);
+  (mongoose.models.DiaryEntry as DiaryEntryModel) ||
+  mongoose.model<IDiaryEntry, DiaryEntryModel>("DiaryEntry", DiaryEntrySchema);
 
 export default DiaryEntry;

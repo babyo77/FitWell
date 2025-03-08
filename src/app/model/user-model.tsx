@@ -22,6 +22,9 @@ interface User extends Document {
   height: string;
   preferences: UserPreferences;
   onboarding: boolean;
+  healthIssues: string;
+  nationality: string;
+  calorieGoal: number;
 }
 
 // Schema for MongoDB
@@ -35,6 +38,7 @@ const userSchema = new mongoose.Schema(
 
     goal: {
       type: String,
+      enum: ["weight-loss", "muscle-gain", "maintenance"],
     },
     age: { type: String },
     weight: { type: String },
@@ -48,9 +52,30 @@ const userSchema = new mongoose.Schema(
         type: String,
       },
     },
+    healthIssues: {
+      type: String,
+    },
+    nationality: {
+      type: String,
+    },
     onboarding: {
       type: Boolean,
       default: false,
+    },
+    calorieGoal: {
+      type: Number,
+      default: function (this: any) {
+        switch (this.goal) {
+          case "weight-loss":
+            return 1500;
+          case "muscle-gain":
+            return 2000;
+          case "maintenance":
+            return 1700;
+          default:
+            return 1700;
+        }
+      },
     },
   },
   {
@@ -58,8 +83,21 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-// Add this pre-save middleware
+// Add middleware to update calorieGoal when goal changes
 userSchema.pre("save", function (next) {
+  if (this.isModified("goal")) {
+    switch (this.goal) {
+      case "weight-loss":
+        this.calorieGoal = 1500;
+        break;
+      case "muscle-gain":
+        this.calorieGoal = 2000;
+        break;
+      case "maintenance":
+        this.calorieGoal = 1700;
+        break;
+    }
+  }
   if (this.uid && !this._id) {
     this._id = this.uid;
   }

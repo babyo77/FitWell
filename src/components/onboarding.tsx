@@ -16,9 +16,26 @@ import {
   PersonStanding,
   GraduationCap,
   Flame,
+  Check,
+  ChevronsUpDown,
 } from "lucide-react";
 import { useAuth } from "@/context/auth-context";
 import UserType from "@/app/model/user-model";
+import { cn } from "@/lib/utils";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { PopoverClose } from "@radix-ui/react-popover";
 
 interface OnboardingData {
   goal: string;
@@ -26,11 +43,38 @@ interface OnboardingData {
   weight: string;
   gender: string;
   height: string;
+  nationality: string;
+  healthIssues: string;
   preferences: {
     workoutType: string;
     dietPreference: string;
   };
 }
+
+const countries = [
+  { code: "AF", name: "Afghanistan", flag: "🇦🇫" },
+  { code: "AL", name: "Albania", flag: "🇦🇱" },
+  { code: "DZ", name: "Algeria", flag: "🇩🇿" },
+  { code: "AR", name: "Argentina", flag: "🇦🇷" },
+  { code: "AU", name: "Australia", flag: "🇦🇺" },
+  { code: "AT", name: "Austria", flag: "🇦🇹" },
+  { code: "BD", name: "Bangladesh", flag: "🇧🇩" },
+  { code: "BE", name: "Belgium", flag: "🇧🇪" },
+  { code: "BR", name: "Brazil", flag: "🇧🇷" },
+  { code: "CA", name: "Canada", flag: "🇨🇦" },
+  { code: "CN", name: "China", flag: "🇨🇳" },
+  { code: "DE", name: "Germany", flag: "🇩🇪" },
+  { code: "FR", name: "France", flag: "🇫🇷" },
+  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
+  { code: "IN", name: "India", flag: "🇮🇳" },
+  { code: "IT", name: "Italy", flag: "🇮🇹" },
+  { code: "JP", name: "Japan", flag: "🇯🇵" },
+  { code: "KR", name: "South Korea", flag: "🇰🇷" },
+  { code: "MX", name: "Mexico", flag: "🇲🇽" },
+  { code: "RU", name: "Russia", flag: "🇷🇺" },
+  { code: "US", name: "United States", flag: "🇺🇸" },
+  // Add more countries as needed
+];
 
 export default function Onboarding() {
   const { user, setUser } = useAuth();
@@ -41,6 +85,8 @@ export default function Onboarding() {
     weight: "",
     gender: "",
     height: "",
+    nationality: "",
+    healthIssues: "",
     preferences: {
       workoutType: "",
       dietPreference: "",
@@ -64,7 +110,7 @@ export default function Onboarding() {
 
   const [loading, setLoading] = useState(false);
   const handleContinue = async () => {
-    if (step === 7) {
+    if (step === 9) {
       setLoading(true);
       const res = await fetch("/api/user", {
         method: "PATCH",
@@ -96,6 +142,8 @@ export default function Onboarding() {
     "Weight",
     "Gender",
     "Height",
+    "Nationality",
+    "Health",
     "Workout",
     "Diet",
   ];
@@ -109,7 +157,7 @@ export default function Onboarding() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-6"
           >
-            <p className="text-gray-500 text-sm">Step {step} of 7</p>
+            <p className="text-gray-500 text-sm">Step {step} of 9</p>
           </motion.div>
 
           {/* New Progress Bar */}
@@ -118,7 +166,7 @@ export default function Onboarding() {
               <motion.div
                 className="h-full bg-black rounded-full"
                 initial={{ width: "0%" }}
-                animate={{ width: `${(step / 7) * 100}%` }}
+                animate={{ width: `${(step / 9) * 100}%` }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               />
             </div>
@@ -267,6 +315,99 @@ export default function Onboarding() {
               {step === 6 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl tracking-tight font-bold text-center">
+                    What's your nationality?
+                  </h2>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className="w-full justify-between h-12"
+                      >
+                        {formData.nationality ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">
+                              {
+                                countries.find(
+                                  (c) => c.code === formData.nationality
+                                )?.flag
+                              }
+                            </span>
+                            <span>
+                              {
+                                countries.find(
+                                  (c) => c.code === formData.nationality
+                                )?.name
+                              }
+                            </span>
+                          </div>
+                        ) : (
+                          "Select your country..."
+                        )}
+                        <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0">
+                      <Command className="w-full">
+                        <CommandInput
+                          placeholder="Search country..."
+                          className="w-full"
+                        />
+                        <CommandEmpty>No country found.</CommandEmpty>
+                        <CommandGroup className="max-h-[300px] overflow-y-auto">
+                          <CommandList>
+                            {countries.map((country) => (
+                              <CommandItem
+                                key={country.code}
+                                value={country.code}
+                                onSelect={(value) => {
+                                  updateFormData("nationality", value);
+                                  document.dispatchEvent(
+                                    new Event("close-popover")
+                                  );
+                                }}
+                                className="w-full"
+                              >
+                                <PopoverClose className=" w-full">
+                                  <div className="flex items-center gap-2 w-full">
+                                    <span className="text-lg">
+                                      {country.flag}
+                                    </span>
+                                    <span>{country.name}</span>
+                                    {formData.nationality === country.code && (
+                                      <Check className="ml-auto h-4 w-4" />
+                                    )}
+                                  </div>
+                                </PopoverClose>
+                              </CommandItem>
+                            ))}
+                          </CommandList>
+                        </CommandGroup>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+
+              {step === 7 && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl tracking-tight font-bold text-center">
+                    Any health issues we should know about?
+                  </h2>
+                  <textarea
+                    placeholder="Please describe any health issues or conditions..."
+                    value={formData.healthIssues}
+                    onChange={(e) =>
+                      updateFormData("healthIssues", e.target.value)
+                    }
+                    className="w-full h-32 p-3 border-2 rounded-xl border-gray-200 focus:border-black focus:outline-none"
+                  />
+                </div>
+              )}
+
+              {step === 8 && (
+                <div className="space-y-6">
+                  <h2 className="text-2xl tracking-tight font-bold text-center">
                     Preferred workout type?
                   </h2>
                   <div className="grid grid-cols-2 gap-4">
@@ -306,7 +447,7 @@ export default function Onboarding() {
                 </div>
               )}
 
-              {step === 7 && (
+              {step === 9 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl tracking-tight font-bold text-center">
                     Diet preference?
@@ -379,12 +520,13 @@ export default function Onboarding() {
                 (step === 3 && !formData.weight) ||
                 (step === 4 && !formData.gender) ||
                 (step === 5 && !formData.height) ||
-                (step === 6 && !formData.preferences.workoutType) ||
-                (step === 7 && !formData.preferences.dietPreference) ||
+                (step === 6 && !formData.nationality) ||
+                (step === 8 && !formData.preferences.workoutType) ||
+                (step === 9 && !formData.preferences.dietPreference) ||
                 loading
               }
             >
-              {step === 7 ? "Complete" : "Continue"}
+              {step === 9 ? "Complete" : "Continue"}
             </Button>
           </motion.div>
         </div>

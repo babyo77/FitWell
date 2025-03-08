@@ -45,9 +45,21 @@ export default function ChatPage() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
+              prev_question: messages[messages?.length - 1]?.content,
+              prev_answer: messages[messages?.length - 2]?.content,
               question: newMessage,
               additional_info: {
-                ...user,
+                displayName: user?.displayName,
+
+                goal: user?.goal,
+                age: user?.age,
+                gender: user?.gender,
+                weight: user?.weight,
+                height: user?.height,
+                preferences: user?.preferences,
+
+                healthIssues: user?.healthIssues,
+                nationality: user?.nationality,
               },
             }),
           }
@@ -77,7 +89,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-115px)]">
+    <div className="flex flex-col h-[calc(100vh-4rem)]">
       {/* Chat header */}
       <div className="border-b p-4 bg-white">
         <h1 className="font-semibold text-lg">FitWell Assistant</h1>

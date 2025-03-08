@@ -9,6 +9,21 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
+  calories: CaloriesState;
+  setCalories: React.Dispatch<React.SetStateAction<CaloriesState>>;
+}
+
+export interface MacroData {
+  current: number;
+}
+
+export interface CaloriesState {
+  baseGoal: number;
+  intake: number;
+  exercise: number;
+  carbs: MacroData;
+  protein: MacroData;
+  fat: MacroData;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -18,6 +33,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
+  const [calories, setCalories] = useState<CaloriesState>({
+    baseGoal: user?.calorieGoal || 0,
+    intake: 0,
+    exercise: 0,
+    carbs: {
+      current: 0,
+    },
+    protein: {
+      current: 0,
+    },
+    fat: {
+      current: 0,
+    },
+  });
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -42,7 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, setUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, setUser, calories, setCalories }}
+    >
       {children}
     </AuthContext.Provider>
   );

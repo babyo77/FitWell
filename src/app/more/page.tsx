@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -29,6 +30,7 @@ import {
   Mars,
   Venus,
   Users,
+  Activity,
 } from "lucide-react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -56,6 +58,7 @@ const profileSchema = z.object({
     .refine((val) => !val || (Number(val) >= 20 && Number(val) <= 500), {
       message: "Weight must be between 20 and 500 kg",
     }),
+  healthIssues: z.string().optional(),
   notifications: z.boolean(),
   photoURL: z.string().optional(),
 });
@@ -77,6 +80,7 @@ export default function ProfileSettingsPage() {
       height: user?.height || "",
       weight: user?.weight || "",
       photoURL: user?.photoURL || "",
+      healthIssues: user?.healthIssues || "",
     },
   });
 
@@ -94,6 +98,7 @@ export default function ProfileSettingsPage() {
           gender: data.gender,
           height: data.height,
           weight: data.weight,
+          healthIssues: data.healthIssues,
         }),
       });
       if (updatedUser.ok) {
@@ -107,6 +112,7 @@ export default function ProfileSettingsPage() {
               gender: data.gender,
               height: data.height,
               weight: data.weight,
+              healthIssues: data.healthIssues,
             } as unknown as typeof prev)
         );
       } else {
@@ -264,6 +270,26 @@ export default function ProfileSettingsPage() {
               {form.formState.errors.weight && (
                 <p className="text-sm text-red-500">
                   {form.formState.errors.weight.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="healthIssues" className="flex items-center gap-2">
+                <Activity className="w-4 h-4" />
+                Health Issues
+              </Label>
+              <Textarea
+                id="healthIssues"
+                placeholder="List any health issues or conditions..."
+                {...form.register("healthIssues")}
+                className={
+                  form.formState.errors.healthIssues ? "border-red-500" : ""
+                }
+              />
+              {form.formState.errors.healthIssues && (
+                <p className="text-sm text-red-500">
+                  {form.formState.errors.healthIssues.message}
                 </p>
               )}
             </div>
