@@ -20,6 +20,7 @@ export default function ChatPage() {
 
   const [newMessage, setNewMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -33,6 +34,7 @@ export default function ChatPage() {
     if (newMessage.trim()) {
       setMessages([...messages, { role: "user", content: newMessage }]);
       setNewMessage("");
+      setIsLoading(true);
 
       try {
         const response = await fetch(
@@ -52,7 +54,7 @@ export default function ChatPage() {
         );
 
         const data = await response.json();
-
+        setIsLoading(false);
         setMessages((prev) => [
           ...prev,
           {
@@ -61,6 +63,7 @@ export default function ChatPage() {
           },
         ]);
       } catch (error) {
+        setIsLoading(false);
         console.error("Error fetching response:", error);
         setMessages((prev) => [
           ...prev,
@@ -130,6 +133,18 @@ export default function ChatPage() {
             </div>
           </div>
         ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-gray-100 text-black rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-black rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                <div className="h-2 w-2 bg-black rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                <div className="h-2 w-2 bg-black rounded-full animate-bounce"></div>
+                <span className="text-sm ml-2">FitWell AI is thinking...</span>
+              </div>
+            </div>
+          </div>
+        )}
         <div ref={messagesEndRef} />
       </div>
 
