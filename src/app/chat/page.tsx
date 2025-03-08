@@ -3,11 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
-import { SendIcon, Mic, ImagePlus } from "lucide-react";
+import { SendIcon, ImagePlus } from 'lucide-react';
 import { useState, useRef, useEffect } from "react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export default function ChatPage() {
-  // Static example messages
   const { user } = useAuth();
   const [messages, setMessages] = useState([
     {
@@ -18,20 +19,16 @@ export default function ChatPage() {
   ]);
 
   const [newMessage, setNewMessage] = useState("");
-  // Add ref for messages container
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Add scroll to bottom function
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Add useEffect to scroll on new messages
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // This is just for UI demonstration - no actual functionality
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
       setMessages([...messages, { role: "user", content: newMessage }]);
@@ -96,19 +93,44 @@ export default function ChatPage() {
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2 break-words ${
+              className={`max-w-[85%] rounded-2xl px-4 py-3 ${
                 message.role === "user"
                   ? "bg-black text-white rounded-tr-none"
                   : "bg-gray-100 text-black rounded-tl-none"
               }`}
             >
-              <p className="whitespace-pre-wrap break-words">
-                {message.content}
-              </p>
+              {message.role === "user" ? (
+                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              ) : (
+                <div className="markdown-content prose prose-sm max-w-none dark:prose-invert prose-headings:mb-2 prose-headings:mt-4 prose-h3:text-base prose-h3:font-semibold prose-p:my-1 prose-ul:my-1 prose-li:my-0.5">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mt-2 mb-2" />,
+                      h2: ({node, ...props}) => <h2 {...props} className="text-base font-bold mt-3 mb-2" />,
+                      h3: ({node, ...props}) => <h3 {...props} className="text-sm font-semibold mt-2 mb-1" />,
+                      p: ({node, ...props}) => <p {...props} className="mb-2 text-sm" />,
+                      ul: ({node, ...props}) => <ul {...props} className="list-disc pl-4 mb-2 text-sm" />,
+                      ol: ({node, ...props}) => <ol {...props} className="list-decimal pl-4 mb-2 text-sm" />,
+                      li: ({node, ...props}) => <li {...props} className="mb-1" />,
+                      strong: ({node, ...props}) => <strong {...props} className="font-semibold" />,
+                      em: ({node, ...props}) => <em {...props} className="italic" />,
+                      blockquote: ({node, ...props}) => (
+                        <blockquote {...props} className="border-l-2 border-gray-300 pl-4 my-2 italic" />
+                      ),
+                      a: ({node, ...props}) => (
+                        <a {...props} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" />
+                      ),
+                    }}
+                  >
+                    {message.content}
+                  </ReactMarkdown>
+                </div>
+              )}
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} /> {/* Add scroll anchor */}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input area */}
