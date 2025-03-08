@@ -13,7 +13,7 @@ function Main({ children }: { children: React.ReactNode }) {
     return <Onboarding />;
   }
 
-  return <main className=" min-h-screen overflow-y-scroll">{children}</main>;
+  return <main className=" max-h-screen ">{children}</main>;
 }
 
 export default Main;

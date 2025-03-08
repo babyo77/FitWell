@@ -77,7 +77,7 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-4rem)]">
+    <div className="flex flex-col h-[calc(100vh-115px)]">
       {/* Chat header */}
       <div className="border-b p-4 bg-white">
         <h1 className="font-semibold text-lg">FitWell Assistant</h1>
@@ -203,7 +203,7 @@ export default function ChatPage() {
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
               placeholder="Ask something..."
-              className="flex-1 border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
+              className="flex-1 border-0 shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 p-0"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
