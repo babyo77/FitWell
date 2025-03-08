@@ -120,7 +120,7 @@ export default function ProfileSettingsPage() {
   };
 
   return (
-    <div className="mx-auto">
+    <div className="mx-auto pb-20">
       <Card className="border-none shadow-none">
         <CardHeader>
           <CardTitle>Profile Settings</CardTitle>

@@ -54,7 +54,7 @@ export default function Home() {
   const progress = (calories.intake / calories.baseGoal) * 100;
 
   return (
-    <div className="min-h-screen leading-tight tracking-tight p-6 max-w-md mx-auto space-y-4">
+    <div className="min-h-screen leading-tight tracking-tight p-6 max-w-md mx-auto pb-20 space-y-4">
       <motion.div
         className=" text-black border rounded-3xl p-6 shadow-lg"
         initial={{ opacity: 0, y: 10 }}

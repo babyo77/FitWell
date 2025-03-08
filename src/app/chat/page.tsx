@@ -3,10 +3,10 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/context/auth-context";
-import { SendIcon, ImagePlus } from 'lucide-react';
+import { SendIcon, ImagePlus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -103,26 +103,69 @@ export default function ChatPage() {
               }`}
             >
               {message.role === "user" ? (
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                <p className="whitespace-pre-wrap break-words">
+                  {message.content}
+                </p>
               ) : (
                 <div className="markdown-content prose prose-sm max-w-none dark:prose-invert prose-headings:mb-2 prose-headings:mt-4 prose-h3:text-base prose-h3:font-semibold prose-p:my-1 prose-ul:my-1 prose-li:my-0.5">
                   <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
-                      h1: ({node, ...props}) => <h1 {...props} className="text-lg font-bold mt-2 mb-2" />,
-                      h2: ({node, ...props}) => <h2 {...props} className="text-base font-bold mt-3 mb-2" />,
-                      h3: ({node, ...props}) => <h3 {...props} className="text-sm font-semibold mt-2 mb-1" />,
-                      p: ({node, ...props}) => <p {...props} className="mb-2 text-sm" />,
-                      ul: ({node, ...props}) => <ul {...props} className="list-disc pl-4 mb-2 text-sm" />,
-                      ol: ({node, ...props}) => <ol {...props} className="list-decimal pl-4 mb-2 text-sm" />,
-                      li: ({node, ...props}) => <li {...props} className="mb-1" />,
-                      strong: ({node, ...props}) => <strong {...props} className="font-semibold" />,
-                      em: ({node, ...props}) => <em {...props} className="italic" />,
-                      blockquote: ({node, ...props}) => (
-                        <blockquote {...props} className="border-l-2 border-gray-300 pl-4 my-2 italic" />
+                      h1: ({ node, ...props }) => (
+                        <h1
+                          {...props}
+                          className="text-lg font-bold mt-2 mb-2"
+                        />
                       ),
-                      a: ({node, ...props}) => (
-                        <a {...props} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer" />
+                      h2: ({ node, ...props }) => (
+                        <h2
+                          {...props}
+                          className="text-base font-bold mt-3 mb-2"
+                        />
+                      ),
+                      h3: ({ node, ...props }) => (
+                        <h3
+                          {...props}
+                          className="text-sm font-semibold mt-2 mb-1"
+                        />
+                      ),
+                      p: ({ node, ...props }) => (
+                        <p {...props} className="mb-2 text-sm" />
+                      ),
+                      ul: ({ node, ...props }) => (
+                        <ul
+                          {...props}
+                          className="list-disc pl-4 mb-2 text-sm"
+                        />
+                      ),
+                      ol: ({ node, ...props }) => (
+                        <ol
+                          {...props}
+                          className="list-decimal pl-4 mb-2 text-sm"
+                        />
+                      ),
+                      li: ({ node, ...props }) => (
+                        <li {...props} className="mb-1" />
+                      ),
+                      strong: ({ node, ...props }) => (
+                        <strong {...props} className="font-semibold" />
+                      ),
+                      em: ({ node, ...props }) => (
+                        <em {...props} className="italic" />
+                      ),
+                      blockquote: ({ node, ...props }) => (
+                        <blockquote
+                          {...props}
+                          className="border-l-2 border-gray-300 pl-4 my-2 italic"
+                        />
+                      ),
+                      a: ({ node, ...props }) => (
+                        <a
+                          {...props}
+                          className="text-blue-600 hover:underline"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        />
                       ),
                     }}
                   >
@@ -151,9 +194,9 @@ export default function ChatPage() {
       {/* Input area */}
       <div className="border-t p-3 bg-white">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon" className="rounded-full">
+          {/* <Button variant="ghost" size="icon" className="rounded-full">
             <ImagePlus className="h-5 w-5 text-gray-500" />
-          </Button>
+          </Button> */}
 
           <div className="flex-1 flex items-center gap-2 border rounded-full px-4 py-2">
             <Input
