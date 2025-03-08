@@ -204,7 +204,7 @@ export default function Onboarding() {
               {step === 1 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl tracking-tight font-bold text-center">
-                    What's your goal?
+                    What&apos;s your goal?
                   </h2>
                   <div className="grid grid-cols-1 gap-4">
                     <SelectCard
@@ -251,7 +251,7 @@ export default function Onboarding() {
               {step === 3 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl tracking-tight font-bold text-center">
-                    What's your weight?
+                    What&apos;s your weight?
                   </h2>
                   <div className="relative">
                     <Input
@@ -275,7 +275,7 @@ export default function Onboarding() {
               {step === 4 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl tracking-tight font-bold text-center">
-                    What's your gender?
+                    What&apos;s your gender?
                   </h2>
                   <div className="grid grid-cols-3 gap-4">
                     <SelectCard
@@ -303,7 +303,7 @@ export default function Onboarding() {
               {step === 5 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl tracking-tight font-bold text-center">
-                    What's your height?
+                    What&apos;s your height?
                   </h2>
                   <div className="relative">
                     <Input
@@ -327,7 +327,7 @@ export default function Onboarding() {
               {step === 6 && (
                 <div className="space-y-6">
                   <h2 className="text-2xl tracking-tight font-bold text-center">
-                    What's your nationality?
+                    What&apos;s your nationality?
                   </h2>
                   <Popover>
                     <PopoverTrigger asChild>
