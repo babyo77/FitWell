@@ -45,8 +45,8 @@ export default function ChatPage() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              prev_question: messages[messages?.length - 1]?.content,
-              prev_answer: messages[messages?.length - 2]?.content,
+              prev_question: messages?.[messages?.length - 1]?.content,
+              prev_answer: messages?.[messages?.length - 2]?.content,
               question: newMessage,
               additional_info: {
                 displayName: user?.displayName,
