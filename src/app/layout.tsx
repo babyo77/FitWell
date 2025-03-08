@@ -18,7 +18,14 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "FitWell",
-  description: "Your personal health assistant",
+  description: "Your personal  health assistant",
+  manifest: "/manifest.json",
+  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+  themeColor: "#ffffff",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-icon.png",
+  }
 };
 
 export default function RootLayout({
@@ -28,6 +35,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <meta name="application-name" content="FitWell" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="FitWell" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-icon.png" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
