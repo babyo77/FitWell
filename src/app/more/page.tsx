@@ -193,7 +193,7 @@ export default function ProfileSettingsPage() {
               </div>
 
               <Label htmlFor="displayName" className="flex items-center gap-2">
-                <User className="w-4 h-4" />
+                <User className="w-4 h-4 text-blue-500" />
                 Display Name
               </Label>
               <Input
@@ -212,7 +212,7 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="email" className="flex items-center gap-2">
-                <Mail className="w-4 h-4" />
+                <Mail className="w-4 h-4 text-purple-500" />
                 Email
               </Label>
               <Input
@@ -225,7 +225,7 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="age" className="flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
+                <Calendar className="w-4 h-4 text-green-500" />
                 Age
               </Label>
               <Input
@@ -243,7 +243,7 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="gender" className="flex items-center gap-2">
-                <UserCircle2 className="w-4 h-4" />
+                <UserCircle2 className="w-4 h-4 text-pink-500" />
                 Gender
               </Label>
               <Select
@@ -261,18 +261,18 @@ export default function ProfileSettingsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male" className="flex items-center gap-2">
-                    <Mars className="w-4 h-4" />
+                    <Mars className="w-4 h-4 text-blue-500" />
                     Male
                   </SelectItem>
                   <SelectItem
                     value="female"
                     className="flex items-center gap-2"
                   >
-                    <Venus className="w-4 h-4" />
+                    <Venus className="w-4 h-4 text-pink-500" />
                     Female
                   </SelectItem>
                   <SelectItem value="other" className="flex items-center gap-2">
-                    <Users className="w-4 h-4" />
+                    <Users className="w-4 h-4 text-purple-500" />
                     Other
                   </SelectItem>
                 </SelectContent>
@@ -286,7 +286,7 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="height" className="flex items-center gap-2">
-                <Ruler className="w-4 h-4" />
+                <Ruler className="w-4 h-4 text-cyan-500" />
                 Height (ft)
               </Label>
               <Input
@@ -304,7 +304,7 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="weight" className="flex items-center gap-2">
-                <Weight className="w-4 h-4" />
+                <Weight className="w-4 h-4 text-yellow-500" />
                 Weight (kg)
               </Label>
               <Input
@@ -322,7 +322,7 @@ export default function ProfileSettingsPage() {
 
             <div className="space-y-2">
               <Label htmlFor="healthIssues" className="flex items-center gap-2">
-                <Activity className="w-4 h-4" />
+                <Activity className="w-4 h-4 text-red-500" />
                 Health Issues
               </Label>
               <Textarea
@@ -346,7 +346,7 @@ export default function ProfileSettingsPage() {
                   htmlFor="notifications"
                   className="flex items-center gap-2"
                 >
-                  <Bell className="w-4 h-4" />
+                  <Bell className="w-4 h-4 text-orange-500" />
                   Notifications
                 </Label>
                 <Switch

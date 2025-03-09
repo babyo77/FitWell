@@ -337,15 +337,15 @@ function DiaryPage() {
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 mt-2">
-                <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+                <div className="text-center p-1.5 bg-green-50 border border-green-200 rounded-lg">
                   <div className="text-xs text-gray-500">Protein</div>
                   <div className="text-sm font-medium">{food.protein}g</div>
                 </div>
-                <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+                <div className="text-center p-1.5 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="text-xs text-gray-500">Carbs</div>
                   <div className="text-sm font-medium">{food.carbs}g</div>
                 </div>
-                <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+                <div className="text-center p-1.5 bg-pink-50 border border-pink-200 rounded-lg">
                   <div className="text-xs text-gray-500">Fat</div>
                   <div className="text-sm font-medium">{food.fat}g</div>
                 </div>
@@ -501,17 +501,17 @@ function DiaryPage() {
                       </div>
                     </div>
                     <div className="grid grid-cols-3 gap-2 mt-2">
-                      <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+                      <div className="text-center p-1.5 bg-green-50 border border-green-200 rounded-lg">
                         <div className="text-xs text-gray-500">Protein</div>
                         <div className="text-sm font-medium">
                           {food.protein}g
                         </div>
                       </div>
-                      <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+                      <div className="text-center p-1.5 bg-blue-50 border border-blue-200 rounded-lg">
                         <div className="text-xs text-gray-500">Carbs</div>
                         <div className="text-sm font-medium">{food.carbs}g</div>
                       </div>
-                      <div className="text-center p-1.5 bg-gray-50 rounded-lg">
+                      <div className="text-center p-1.5 bg-pink-50 border border-pink-200 rounded-lg">
                         <div className="text-xs text-gray-500">Fat</div>
                         <div className="text-sm font-medium">{food.fat}g</div>
                       </div>

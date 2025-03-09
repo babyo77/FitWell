@@ -422,17 +422,13 @@ export default function Home() {
       <div className="grid grid-cols-2 gap-3">
         {/* Carbs Card */}
         <motion.div
-          className=" text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
+          className="text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
         >
-          <div className="flex items-center gap-2 mb-3">
-            <GanttChart className="w-4 h-4 text-purple-500" />
-            <h3 className="text-sm font-medium">Carbs</h3>
-          </div>
-          <div className="w-24 h-24 mx-auto mb-3">
+          <div className="w-24 h-24 mx-auto mb-3 relative">
             <CircularProgressbar
               value={(calories.carbs.current / calories.baseGoal) * 100}
               strokeWidth={8}
@@ -442,30 +438,25 @@ export default function Home() {
                 strokeLinecap: "round",
               })}
             />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl font-semibold">{calories.carbs.current}g</span>
+            </div>
           </div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-            className="w-full bg-transparent text-2xl font-semibold text-center "
-          >
-            {calories.carbs.current}g
-          </motion.p>
+          <div className="flex items-center gap-2 justify-center">
+            <GanttChart className="w-4 h-4 text-purple-500" />
+            <h3 className="text-sm font-medium">Carbs</h3>
+          </div>
         </motion.div>
 
         {/* Protein Card */}
         <motion.div
-          className=" text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
+          className="text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
         >
-          <div className="flex items-center gap-2 mb-3">
-            <Dumbbell className="w-4 h-4 text-red-500" />
-            <h3 className="text-sm font-medium">Protein</h3>
-          </div>
-          <div className="w-24 h-24 mx-auto mb-3">
+          <div className="w-24 h-24 mx-auto mb-3 relative">
             <CircularProgressbar
               value={(calories.protein.current / calories.baseGoal) * 100}
               strokeWidth={8}
@@ -475,30 +466,25 @@ export default function Home() {
                 strokeLinecap: "round",
               })}
             />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl font-semibold">{calories.protein.current}g</span>
+            </div>
           </div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
-            className="w-full bg-transparent text-2xl font-semibold text-center "
-          >
-            {calories.protein.current}g
-          </motion.p>
+          <div className="flex items-center gap-2 justify-center">
+            <Dumbbell className="w-4 h-4 text-red-500" />
+            <h3 className="text-sm font-medium">Protein</h3>
+          </div>
         </motion.div>
 
         {/* Fat Card */}
         <motion.div
-          className=" text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
+          className="text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
         >
-          <div className="flex items-center gap-2 mb-3">
-            <CircleDashed className="w-4 h-4 text-yellow-500" />
-            <h3 className="text-sm font-medium">Fat</h3>
-          </div>
-          <div className="w-24 h-24 mx-auto mb-3">
+          <div className="w-24 h-24 mx-auto mb-3 relative">
             <CircularProgressbar
               value={(calories.fat.current / calories.baseGoal) * 100}
               strokeWidth={8}
@@ -508,15 +494,14 @@ export default function Home() {
                 strokeLinecap: "round",
               })}
             />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="text-2xl font-semibold">{calories.fat.current}g</span>
+            </div>
           </div>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-            className="w-full bg-transparent text-2xl font-semibold text-center "
-          >
-            {calories.fat.current}g
-          </motion.p>
+          <div className="flex items-center gap-2 justify-center">
+            <CircleDashed className="w-4 h-4 text-yellow-500" />
+            <h3 className="text-sm font-medium">Fat</h3>
+          </div>
         </motion.div>
 
         {/* Create Meal Card */}
