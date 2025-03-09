@@ -7,9 +7,12 @@ import { SendIcon, ImagePlus } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
+import User from "../model/user-model";
 
 export default function ChatPage() {
-  const { user, newMessage, setNewMessage, messages, setMessages } = useAuth();
+  const { user, newMessage, setNewMessage, messages, setMessages, setUser } =
+    useAuth();
 
   // Add suggested messages
   const suggestedMessages = [
@@ -29,6 +32,31 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
+  const handleCaloriesUpdate = async (data: any) => {
+    try {
+      // Update the backend
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: user?.uid,
+          exercise: data.calories_burnt,
+        }),
+      });
+
+      if (res.ok) {
+        toast.info(`${data.calories_burnt} calories burnt`);
+      }
+      // Update local user state
+      if (user) {
+        setUser({ ...user?.toObject(), exercise: data.calories_burnt });
+      }
+    } catch (error) {
+      console.error("Error updating exercise data:", error);
+    }
+  };
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
       setMessages([...messages, { role: "user", content: newMessage }]);
@@ -51,14 +79,12 @@ export default function ChatPage() {
               }),
               additional_info: {
                 displayName: user?.displayName,
-
                 goal: user?.goal,
                 age: user?.age,
                 gender: user?.gender,
                 weight: user?.weight,
                 height: user?.height,
                 preferences: user?.preferences,
-
                 healthIssues: user?.healthIssues,
                 nationality: user?.nationality,
               },
@@ -70,6 +96,12 @@ export default function ChatPage() {
           throw new Error("Failed to fetch response");
         }
         const data = await response.json();
+
+        // Handle calories_burnt if present in response
+        if (data.calories_burnt && user?.uid) {
+          await handleCaloriesUpdate(data);
+        }
+
         setIsLoading(false);
         setMessages((prev) => [
           ...prev,
@@ -215,13 +247,9 @@ export default function ChatPage() {
             {suggestedMessages.map((suggestion, index) => (
               <button
                 key={index}
-                onClick={() => {
-                  // Create a temporary variable with the suggestion
-                  const messageToSend = suggestion;
-                  // First update the newMessage state
-                  setNewMessage(messageToSend);
-                  // Then immediately send this specific message
-                  if (messageToSend.trim()) {
+                onClick={async () => {
+                  const messageToSend = suggestion.trim();
+                  if (messageToSend) {
                     setMessages([
                       ...messages,
                       { role: "user", content: messageToSend },
@@ -229,57 +257,67 @@ export default function ChatPage() {
                     setNewMessage("");
                     setIsLoading(true);
 
-                    fetch("https://fitwell-backend.onrender.com/chatbot/ask/", {
-                      method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        question: messageToSend,
-                        ...(messages.length > 2 && {
-                          prev_question: messages[messages.length - 1].content,
-                          prev_answer: messages[messages.length - 2].content,
-                        }),
-                        additional_info: {
-                          displayName: user?.displayName,
-                          goal: user?.goal,
-                          age: user?.age,
-                          gender: user?.gender,
-                          weight: user?.weight,
-                          height: user?.height,
-                          preferences: user?.preferences,
-                          healthIssues: user?.healthIssues,
-                          nationality: user?.nationality,
+                    try {
+                      const response = await fetch(
+                        "https://fitwell-backend.onrender.com/chatbot/ask/",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type": "application/json",
+                          },
+                          body: JSON.stringify({
+                            question: messageToSend,
+                            ...(messages.length > 2 && {
+                              prev_question:
+                                messages[messages.length - 1].content,
+                              prev_answer:
+                                messages[messages.length - 2].content,
+                            }),
+                            additional_info: {
+                              displayName: user?.displayName,
+                              goal: user?.goal,
+                              age: user?.age,
+                              gender: user?.gender,
+                              weight: user?.weight,
+                              height: user?.height,
+                              preferences: user?.preferences,
+                              healthIssues: user?.healthIssues,
+                              nationality: user?.nationality,
+                            },
+                          }),
+                        }
+                      );
+
+                      if (!response.ok) {
+                        throw new Error("Failed to fetch response");
+                      }
+                      const data = await response.json();
+
+                      // Handle calories tracking if present
+                      if (data.calories_burnt && user?.uid) {
+                        await handleCaloriesUpdate(data);
+                      }
+
+                      setIsLoading(false);
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          role: "assistant",
+                          content: data.answer,
                         },
-                      }),
-                    })
-                      .then((response) => {
-                        if (!response.ok)
-                          throw new Error("Failed to fetch response");
-                        return response.json();
-                      })
-                      .then((data) => {
-                        setIsLoading(false);
-                        setMessages((prev) => [
-                          ...prev,
-                          {
-                            role: "assistant",
-                            content: data.answer,
-                          },
-                        ]);
-                      })
-                      .catch((error) => {
-                        setIsLoading(false);
-                        console.error("Error fetching response:", error);
-                        setMessages((prev) => [
-                          ...prev,
-                          {
-                            role: "assistant",
-                            content:
-                              "Sorry, I encountered an error. Please try again.",
-                          },
-                        ]);
-                      });
+                      ]);
+                    } catch (error) {
+                      setIsLoading(false);
+                      console.error("Error fetching response:", error);
+                      setMessages((prev) => [
+                        ...prev,
+                        {
+                          role: "assistant",
+                          content:
+                            "Sorry, I encountered an error. Please try again.",
+                        },
+                      ]);
+                    }
                   }
                 }}
                 className="bg-gray-100 hover:bg-gray-200 text-sm px-4 py-2 rounded-full transition-colors"
