@@ -231,9 +231,52 @@ export default function Home() {
         </motion.h1>
       </motion.div>
 
+      <motion.div
+        className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 rounded-2xl border cursor-pointer hover:shadow-xl transition-shadow relative overflow-hidden group"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        whileHover={{ scale: 1.02 }}
+        transition={{ duration: 0.3 }}
+        onClick={() => router.push("/plan")}
+      >
+        {/* Shiny effect overlay */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-transparent via-white to-transparent -translate-x-full group-hover:translate-x-full transition-all duration-1000 ease-out mix-blend-overlay" />
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className=" p-2 rounded-xl">
+              <Utensils className="w-5 h-5 " />
+            </div>
+            <div>
+              <h2 className=" font-semibold text-lg">Today's Meals</h2>
+              <p className=" text-sm">View your daily food diary</p>
+            </div>
+          </div>
+          <motion.div
+            className=" p-2 rounded-full"
+            whileHover={{ x: 5 }}
+            transition={{ type: "spring", stiffness: 300 }}
+          >
+            <svg
+              className="w-5 h-5 "
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
+            </svg>
+          </motion.div>
+        </div>
+      </motion.div>
+
       {/* Calories Card */}
       <motion.div
-        className=" text-black border rounded-3xl p-6 shadow-lg"
+        className=" text-black border rounded-3xl p-6 shadow-md"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -372,12 +415,12 @@ export default function Home() {
         </motion.div>
       </motion.div>
 
-      <h1 className="text-2xl font-bold">Macros</h1>
+      <h1 className="text-2xl font-bold">Macros & Meal</h1>
       {/* Macros Cards */}
       <div className="grid grid-cols-2 gap-3">
         {/* Carbs Card */}
         <motion.div
-          className=" text-black border shadow-sm rounded-2xl p-4 hover:shadow-md transition-shadow"
+          className=" text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.02 }}
@@ -410,7 +453,7 @@ export default function Home() {
 
         {/* Protein Card */}
         <motion.div
-          className=" text-black border shadow-sm rounded-2xl p-4 hover:shadow-md transition-shadow"
+          className=" text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.02 }}
@@ -443,7 +486,7 @@ export default function Home() {
 
         {/* Fat Card */}
         <motion.div
-          className=" text-black border shadow-sm rounded-2xl p-4 hover:shadow-md transition-shadow"
+          className=" text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.02 }}
@@ -476,12 +519,11 @@ export default function Home() {
 
         {/* Create Meal Card */}
         <motion.div
-          className="text-black border shadow-sm rounded-2xl p-4 hover:shadow-md transition-shadow cursor-pointer"
+          className="text-black  border rounded-2xl p-4 hover:shadow-md transition-shadow cursor-pointer"
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
+          animate={{ opacity: 0.5, y: 0 }}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
-          onClick={() => router.push("/chat")}
         >
           <div className="flex items-center gap-2 mb-3">
             <Utensils className="w-4 h-4 text-emerald-500" />
@@ -510,7 +552,7 @@ export default function Home() {
         transition={{ duration: 0.2, delay: 0.5 }}
         className="hover:shadow-md transition-shadow"
       >
-        <Card className="border shadow-sm rounded-2xl">
+        <Card className="border rounded-2xl shadow-none">
           <CardHeader className="pb-0 h-2">
             <CardTitle className="flex items-center gap-2 p-0">
               <Droplets className="h-4 w-4 text-cyan-500" />
