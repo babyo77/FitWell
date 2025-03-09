@@ -232,7 +232,7 @@ export default function Home() {
       </motion.div>
 
       <motion.div
-        className="bg-gradient-to-r from-blue-50 via-purple-50 to-pink-50 p-4 rounded-2xl border cursor-pointer hover:shadow-xl transition-shadow relative overflow-hidden group"
+        className="bg-gradient-to-r from-gray-100 via-black-100 to-white-50 p-4 rounded-2xl border cursor-pointer hover:shadow-xl transition-shadow relative overflow-hidden group"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.02 }}
@@ -306,7 +306,7 @@ export default function Home() {
             {/* Overlay for centered content with animations */}
             <div className="relative -mt-[200px] flex flex-col items-center justify-center h-[200px]">
               <motion.span
-                className="text-[48px] font-bold leading-none mb-1 text-blue-700"
+                className="text-[48px] font-bold leading-none mb-1 "
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.4, type: "spring", stiffness: 100 }}

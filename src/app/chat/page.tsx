@@ -17,8 +17,8 @@ export default function ChatPage() {
   // Add suggested messages
   const suggestedMessages = [
     "Can you create a meal plan for me?",
-    "What exercises can I do at home?",
     "I have done 30 minutes of cardio",
+    "Tell me some exercises",
   ];
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -354,6 +354,7 @@ export default function ChatPage() {
           <Button
             onClick={handleSendMessage}
             variant="ghost"
+            disabled={isLoading}
             size="icon"
             className="rounded-full bg-black text-white hover:bg-gray-800"
           >
