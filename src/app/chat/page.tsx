@@ -42,7 +42,7 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           uid: user?.uid,
-          exercise: data.calories_burnt,
+          exercise: data.calories_burnt + user?.exercise || 0,
         }),
       });
 
@@ -51,7 +51,11 @@ export default function ChatPage() {
       }
       // Update local user state
       if (user) {
-        setUser({ ...user?.toObject(), exercise: data.calories_burnt });
+        //@ts-expect-error:exp
+        setUser({
+          ...user,
+          exercise: data.calories_burnt + user.exercise || 0,
+        });
       }
     } catch (error) {
       console.error("Error updating exercise data:", error);
