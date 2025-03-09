@@ -5,7 +5,7 @@ import dbConnect from "@/app/lib/db";
 
 // Configure route settings
 export const dynamic = "force-dynamic";
-export const maxDuration = 300; // 5 minute timeout
+export const maxDuration = 60; // 5 minute timeout
 
 export async function GET(request: Request) {
   try {
