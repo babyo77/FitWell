@@ -11,6 +11,8 @@ import {
   Droplets,
   Plus,
   Minus,
+  BedDouble,
+  CircleDashed,
 } from "lucide-react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
@@ -219,7 +221,7 @@ export default function Home() {
       >
         <Avatar className="w-10 h-10">
           <AvatarImage src={user?.photoURL} alt={user?.displayName} />
-          <AvatarFallback>{user?.displayName?.charAt(0)}</AvatarFallback>
+          <AvatarFallback>{user?.displayName?.split(" ")[0]}</AvatarFallback>
         </Avatar>
         <motion.h1
           className="text-2xl font-bold"
@@ -493,7 +495,7 @@ export default function Home() {
           transition={{ duration: 0.2 }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <Dumbbell className="w-4 h-4 text-yellow-500" />
+            <CircleDashed className="w-4 h-4 text-yellow-500" />
             <h3 className="text-sm font-medium">Fat</h3>
           </div>
           <div className="w-24 h-24 mx-auto mb-3">
@@ -521,7 +523,7 @@ export default function Home() {
         <motion.div
           className="text-black  border rounded-2xl p-4 hover:shadow-md transition-shadow cursor-pointer"
           initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 0.5, y: 0 }}
+          animate={{ opacity: 0.3, y: 0 }}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
         >
