@@ -552,7 +552,7 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.2, delay: 0.5 }}
-        className="hover:shadow-md transition-shadow"
+        // className="hover:shadow-md transition-shadow"
       >
         <Card className="border rounded-2xl shadow-none">
           <CardHeader className="pb-0 h-2">
