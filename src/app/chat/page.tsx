@@ -9,10 +9,20 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import User from "../model/user-model";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function ChatPage() {
   const { user, newMessage, setNewMessage, messages, setMessages, setUser } =
     useAuth();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [pendingCaloriesData, setPendingCaloriesData] = useState<any>(null);
 
   // Add suggested messages
   const suggestedMessages = [
@@ -33,6 +43,13 @@ export default function ChatPage() {
   }, [messages]);
 
   const handleCaloriesUpdate = async (data: any) => {
+    setPendingCaloriesData(data);
+    setIsDialogOpen(true);
+  };
+
+  const confirmCaloriesUpdate = async () => {
+    if (!pendingCaloriesData) return;
+
     try {
       // Update the backend
       const res = await fetch("/api/user", {
@@ -42,25 +59,29 @@ export default function ChatPage() {
         },
         body: JSON.stringify({
           uid: user?.uid,
-          exercise: data.calories_burnt + user?.exercise || 0,
+          exercise: pendingCaloriesData.calories_burnt + user?.exercise || 0,
         }),
       });
 
       if (res.ok) {
-        toast.info(`${data.calories_burnt} calories burnt`);
+        toast.info(`${pendingCaloriesData.calories_burnt} calories burnt`);
       }
       // Update local user state
       if (user) {
         //@ts-expect-error:exp
         setUser({
           ...user,
-          exercise: data.calories_burnt + user.exercise || 0,
+          exercise: pendingCaloriesData.calories_burnt + user.exercise || 0,
         });
       }
     } catch (error) {
       console.error("Error updating exercise data:", error);
+    } finally {
+      setIsDialogOpen(false);
+      setPendingCaloriesData(null);
     }
   };
+
   const handleSendMessage = async () => {
     if (newMessage.trim()) {
       setMessages([...messages, { role: "user", content: newMessage }]);
@@ -366,6 +387,24 @@ export default function ChatPage() {
           </Button>
         </div>
       </div>
+      {/* Dialog for confirming calories update */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Exercise Update</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to add {pendingCaloriesData?.calories_burnt}{" "}
+              calories to your exercise total?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmCaloriesUpdate}>Confirm</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

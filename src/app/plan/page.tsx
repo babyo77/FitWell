@@ -21,6 +21,7 @@ interface MealItem {
 interface Meal {
   time: string;
   item: MealItem;
+  eaten?: boolean;
 }
 
 interface DietPlan {
@@ -46,11 +47,29 @@ export default function MealPlanPage() {
       fat: "",
     },
   });
+  const [eatenMeals, setEatenMeals] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    const fetchDietPlan = async () => {
+    const fetchDiaryAndPlan = async () => {
+      if (!user?.uid) return;
+
       try {
-        const response = await fetch(
+        // First fetch today's diary to check eaten meals
+        const diaryResponse = await fetch(
+          `/api/diary/${user.uid}?date=${new Date().toISOString()}`
+        );
+        const diaryData = await diaryResponse.json();
+
+        // Create a Set of eaten meal names with type assertion
+        const eatenMealNames = new Set(
+          (diaryData?.foods?.map((food: { name: string }) =>
+            food.name.toLowerCase()
+          ) || []) as string[]
+        );
+        setEatenMeals(eatenMealNames);
+
+        // Then fetch diet plan
+        const planResponse = await fetch(
           "https://fitwell-backend.onrender.com/diet/plan/",
           {
             method: "POST",
@@ -61,12 +80,25 @@ export default function MealPlanPage() {
           }
         );
 
-        if (!response.ok) {
+        if (!planResponse.ok) {
           throw new Error("Failed to fetch diet plan");
         }
 
-        const data = await response.json();
-        setDietPlan(data.diet_plan);
+        const planData = await planResponse.json();
+
+        // Mark meals as eaten if they exist in diary
+        const updatedPlan = Object.entries(planData.diet_plan).reduce(
+          (acc: any, [key, meal]: [string, any]) => {
+            acc[key] = {
+              ...meal,
+              eaten: eatenMealNames.has(meal.item.name.toLowerCase()),
+            };
+            return acc;
+          },
+          {}
+        );
+
+        setDietPlan(updatedPlan);
       } catch (error) {
         toast.error("Failed to load meal plan");
         console.error(error);
@@ -75,7 +107,7 @@ export default function MealPlanPage() {
       }
     };
 
-    fetchDietPlan();
+    fetchDiaryAndPlan();
   }, [user]);
 
   // Calculate total calories and macros
@@ -153,6 +185,56 @@ export default function MealPlanPage() {
     return match ? Number.parseInt(match[0]) : 0;
   };
 
+  // Add this new function near other handlers
+  const handleMealEaten = async (mealType: keyof DietPlan) => {
+    if (!user?.uid) return;
+
+    try {
+      const meal = dietPlan?.[mealType];
+      if (!meal) return;
+
+      const response = await fetch("/api/diary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: user.uid,
+          foods: [
+            {
+              name: meal.item.name,
+              calories: meal.item.cal,
+              carbs: parseInt(meal.item.carbs),
+              protein: parseInt(meal.item.protein),
+              fat: parseInt(meal.item.fat),
+              quantity: meal.item.qty,
+              mealType: mealType,
+            },
+          ],
+          mealType: mealType,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to mark meal as eaten");
+      }
+
+      // Update local state to mark meal as eaten
+      setDietPlan((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          [mealType]: { ...prev[mealType], eaten: true },
+        };
+      });
+
+      toast.success(`${mealType} marked as eaten!`);
+    } catch (error) {
+      toast.error("Failed to mark meal as eaten");
+      console.error(error);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -208,6 +290,12 @@ export default function MealPlanPage() {
         {(Object.keys(dietPlan) as Array<keyof DietPlan>).map(
           (mealType, index) => {
             const meal = dietPlan[mealType];
+
+            // Skip rendering if meal is already eaten
+            if (meal.eaten) {
+              return null;
+            }
+
             return (
               <motion.div
                 key={mealType}
@@ -235,8 +323,16 @@ export default function MealPlanPage() {
                         </h3>
                         <p className="text-sm text-gray-600">{meal.item.qty}</p>
                       </div>
-                      <Button variant="outline" size="sm" className="h-8 px-3 ">
-                        Eaten
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`h-8 px-3 ${
+                          meal.eaten ? "bg-green-100" : ""
+                        }`}
+                        onClick={() => handleMealEaten(mealType)}
+                        disabled={meal.eaten}
+                      >
+                        {meal.eaten ? "Eaten ✓" : "Eaten"}
                       </Button>
                     </div>
 

@@ -16,18 +16,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "FitWell",
-  description: "Your personal  health assistant",
-  manifest: "/manifest.json",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
-  themeColor: "#ffffff",
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/apple-icon.png",
-  }
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
