@@ -478,27 +478,29 @@ export default function Home() {
 
         {/* Fat Card */}
         <motion.div
-          className="text-black border rounded-2xl p-4 hover:shadow-md transition-shadow"
+          className="text-black border rounded-2xl p-3 hover:shadow-md transition-shadow flex flex-col items-center justify-between h-full"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           whileHover={{ scale: 1.02 }}
           transition={{ duration: 0.2 }}
         >
-          <div className="w-24 h-24 mx-auto mb-3 relative">
-            <CircularProgressbar
-              value={(calories.fat.current / calories.baseGoal) * 100}
-              strokeWidth={8}
-              styles={buildStyles({
-                pathColor: "currentColor",
-                trailColor: "#e5e5e5",
-                strokeLinecap: "round",
-              })}
-            />
-            <div className="absolute inset-0 flex items-center justify-center">
-              <span className="text-2xl font-semibold">{calories.fat.current}g</span>
+          <div className="flex-1 flex items-center">
+            <div className="w-24 h-24 relative">
+              <CircularProgressbar
+                value={(calories.fat.current / calories.baseGoal) * 100}
+                strokeWidth={8}
+                styles={buildStyles({
+                  pathColor: "currentColor",
+                  trailColor: "#e5e5e5",
+                  strokeLinecap: "round",
+                })}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-2xl font-semibold">{calories.fat.current}g</span>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-2 justify-center">
+          <div className="flex items-center gap-2 justify-center mt-2">
             <CircleDashed className="w-4 h-4 text-yellow-500" />
             <h3 className="text-sm font-medium">Fat</h3>
           </div>
