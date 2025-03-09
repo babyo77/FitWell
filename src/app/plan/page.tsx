@@ -60,12 +60,18 @@ export default function MealPlanPage() {
         );
         const diaryData = await diaryResponse.json();
 
-        // Create a Set of eaten meal names with type assertion
-        const eatenMealNames = new Set(
-          (diaryData?.foods?.map((food: { name: string }) =>
-            food.name.toLowerCase()
-          ) || []) as string[]
-        );
+        // Create a Set of eaten meal names with case-insensitive comparison
+        const eatenMealNames = new Set<string>();
+
+        // Process each meal type (breakfast, lunch, dinner)
+        ["breakfast", "lunch", "dinner"].forEach((mealType) => {
+          diaryData[mealType]?.foods?.forEach(
+            (food: { name: string; mealType: string }) => {
+              eatenMealNames.add(`${food.name.toLowerCase()}-${food.mealType}`);
+            }
+          );
+        });
+
         setEatenMeals(eatenMealNames);
 
         // Then fetch diet plan
@@ -89,9 +95,10 @@ export default function MealPlanPage() {
         // Mark meals as eaten if they exist in diary
         const updatedPlan = Object.entries(planData.diet_plan).reduce(
           (acc: any, [key, meal]: [string, any]) => {
+            const mealKey = `${meal.item.name.toLowerCase()}-${key}`;
             acc[key] = {
               ...meal,
-              eaten: eatenMealNames.has(meal.item.name.toLowerCase()),
+              eaten: eatenMealNames.has(mealKey),
             };
             return acc;
           },
@@ -185,7 +192,7 @@ export default function MealPlanPage() {
     return match ? Number.parseInt(match[0]) : 0;
   };
 
-  // Add this new function near other handlers
+  // Update handleMealEaten to refresh the diary data after marking as eaten
   const handleMealEaten = async (mealType: keyof DietPlan) => {
     if (!user?.uid) return;
 
@@ -219,13 +226,20 @@ export default function MealPlanPage() {
         throw new Error("Failed to mark meal as eaten");
       }
 
-      // Update local state to mark meal as eaten
+      // Update local state immediately
       setDietPlan((prev) => {
         if (!prev) return prev;
         return {
           ...prev,
           [mealType]: { ...prev[mealType], eaten: true },
         };
+      });
+
+      // Add to eaten meals set
+      setEatenMeals((prev) => {
+        const newSet = new Set(prev);
+        newSet.add(`${meal.item.name.toLowerCase()}-${mealType}`);
+        return newSet;
       });
 
       toast.success(`${mealType} marked as eaten!`);

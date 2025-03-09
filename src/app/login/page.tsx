@@ -44,7 +44,7 @@ export default function LoginPage() {
 
         {/* Login Button */}
         <Button
-          className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md text-center hover:bg-gray-50"
+          className="w-full mb-4 px-4 py-2 border rounded-md text-center 0"
           onClick={handleLogin}
           disabled={loading}
         >
