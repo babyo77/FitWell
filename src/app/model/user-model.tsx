@@ -25,6 +25,8 @@ interface User extends Document {
   healthIssues: string;
   nationality: string;
   calorieGoal: number;
+  exercise: number;
+  notify: string;
 }
 
 // Schema for MongoDB
@@ -76,6 +78,13 @@ const userSchema = new mongoose.Schema(
             return 1700;
         }
       },
+    },
+    exercise: {
+      type: Number,
+      default: 0,
+    },
+    notify: {
+      type: String,
     },
   },
   {

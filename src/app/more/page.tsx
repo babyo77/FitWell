@@ -1,7 +1,7 @@
 "use client";
 
 import { signOut } from "firebase/auth";
-import { auth } from "@/app/lib/firebase";
+import { auth, messaging } from "@/app/lib/firebase";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-
+import { getToken } from "firebase/messaging";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -36,7 +36,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const profileSchema = z.object({
   uid: z.string(),
@@ -59,7 +59,6 @@ const profileSchema = z.object({
       message: "Weight must be between 20 and 500 kg",
     }),
   healthIssues: z.string().optional(),
-  notifications: z.boolean(),
   photoURL: z.string().optional(),
 });
 
@@ -67,6 +66,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function ProfileSettingsPage() {
   const { user, setUser } = useAuth();
+  const [notification, setNotification] = useState<boolean>(false);
 
   const form = useForm<ProfileFormData>({
     resolver: zodResolver(profileSchema),
@@ -74,7 +74,6 @@ export default function ProfileSettingsPage() {
       uid: user?.uid || "",
       displayName: user?.displayName || "",
       email: user?.email || "",
-      notifications: true,
       age: user?.age || "",
       gender: (user?.gender as "male" | "female" | "other") || undefined,
       height: user?.height || "",
@@ -84,6 +83,15 @@ export default function ProfileSettingsPage() {
     },
   });
 
+  useEffect(() => {
+    if ("Notification" in window) {
+      if (Notification.permission === "granted") {
+        getKey();
+      } else {
+        setNotification(false);
+      }
+    }
+  }, [user]);
   const [loading, setLoading] = useState(false);
   const handleSubmit = async (data: ProfileFormData) => {
     try {
@@ -122,6 +130,44 @@ export default function ProfileSettingsPage() {
       toast.error("Failed to update profile");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getKey = async () => {
+    if (messaging) {
+      const token = await getToken(messaging, {
+        vapidKey:
+          "BJ1CyFl3hnseciEi32YNYFZhqKQnLSc40FuY-UIQTnFOoBS10OkvcoiY399nRyW7a6cZQDAPM2Rpykk1N9LZO2Y",
+      });
+      const res = await fetch("/api/user", {
+        method: "PATCH",
+        body: JSON.stringify({
+          uid: user?.uid,
+          notify: token,
+        }),
+      });
+      if (res.ok) {
+        setNotification(true);
+      } else {
+        toast.error("Failed to enable notification");
+      }
+    }
+  };
+
+  const enableNotifications = async () => {
+    if ("Notification" in window) {
+      const permission = await Notification.requestPermission();
+
+      if (permission === "granted") {
+        setNotification(true);
+        getKey();
+      } else {
+        alert("Enable from you settings");
+        setNotification(false);
+      }
+    } else {
+      alert("Not supported! Please install NGLdrx. from account settings");
+      setNotification(false);
     }
   };
 
@@ -294,22 +340,24 @@ export default function ProfileSettingsPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <Label
-                htmlFor="notifications"
-                className="flex items-center gap-2"
-              >
-                <Bell className="w-4 h-4" />
-                Notifications
-              </Label>
-              <Switch
-                id="notifications"
-                checked={form.watch("notifications")}
-                onCheckedChange={(checked) =>
-                  form.setValue("notifications", checked)
-                }
-              />
-            </div>
+            {!notification && (
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="notifications"
+                  className="flex items-center gap-2"
+                >
+                  <Bell className="w-4 h-4" />
+                  Notifications
+                </Label>
+                <Switch
+                  id="notifications"
+                  checked={notification}
+                  onCheckedChange={(checked) =>
+                    checked ? enableNotifications() : null
+                  }
+                />
+              </div>
+            )}
 
             <div className="flex justify-between">
               <Button

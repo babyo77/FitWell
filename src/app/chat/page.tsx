@@ -9,16 +9,15 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 export default function ChatPage() {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState([
-    {
-      role: "assistant",
-      content:
-        "Hello! I'm your FitWell AI assistant. How can I help you with your fitness journey today?",
-    },
-  ]);
+  const { user, newMessage, setNewMessage, messages, setMessages } = useAuth();
 
-  const [newMessage, setNewMessage] = useState("");
+  // Add suggested messages
+  const suggestedMessages = [
+    "Can you create a meal plan for me?",
+    "What exercises can I do at home?",
+    "I have done 30 minutes of cardio",
+  ];
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -45,9 +44,11 @@ export default function ChatPage() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              prev_question: messages?.[messages?.length - 1]?.content,
-              prev_answer: messages?.[messages?.length - 2]?.content,
               question: newMessage,
+              ...(messages.length > 2 && {
+                prev_question: messages[messages.length - 1].content,
+                prev_answer: messages[messages.length - 2].content,
+              }),
               additional_info: {
                 displayName: user?.displayName,
 
@@ -65,6 +66,9 @@ export default function ChatPage() {
           }
         );
 
+        if (!response.ok) {
+          throw new Error("Failed to fetch response");
+        }
         const data = await response.json();
         setIsLoading(false);
         setMessages((prev) => [
@@ -188,6 +192,7 @@ export default function ChatPage() {
             </div>
           </div>
         ))}
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-gray-100 text-black rounded-2xl rounded-tl-none px-4 py-3 max-w-[85%]">
@@ -202,6 +207,89 @@ export default function ChatPage() {
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Suggestions above input area */}
+      {messages.length === 1 && (
+        <div className="px-3 pb-3">
+          <div className="flex flex-wrap gap-2 justify-center">
+            {suggestedMessages.map((suggestion, index) => (
+              <button
+                key={index}
+                onClick={() => {
+                  // Create a temporary variable with the suggestion
+                  const messageToSend = suggestion;
+                  // First update the newMessage state
+                  setNewMessage(messageToSend);
+                  // Then immediately send this specific message
+                  if (messageToSend.trim()) {
+                    setMessages([
+                      ...messages,
+                      { role: "user", content: messageToSend },
+                    ]);
+                    setNewMessage("");
+                    setIsLoading(true);
+
+                    fetch("https://fitwell-backend.onrender.com/chatbot/ask/", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        question: messageToSend,
+                        ...(messages.length > 2 && {
+                          prev_question: messages[messages.length - 1].content,
+                          prev_answer: messages[messages.length - 2].content,
+                        }),
+                        additional_info: {
+                          displayName: user?.displayName,
+                          goal: user?.goal,
+                          age: user?.age,
+                          gender: user?.gender,
+                          weight: user?.weight,
+                          height: user?.height,
+                          preferences: user?.preferences,
+                          healthIssues: user?.healthIssues,
+                          nationality: user?.nationality,
+                        },
+                      }),
+                    })
+                      .then((response) => {
+                        if (!response.ok)
+                          throw new Error("Failed to fetch response");
+                        return response.json();
+                      })
+                      .then((data) => {
+                        setIsLoading(false);
+                        setMessages((prev) => [
+                          ...prev,
+                          {
+                            role: "assistant",
+                            content: data.answer,
+                          },
+                        ]);
+                      })
+                      .catch((error) => {
+                        setIsLoading(false);
+                        console.error("Error fetching response:", error);
+                        setMessages((prev) => [
+                          ...prev,
+                          {
+                            role: "assistant",
+                            content:
+                              "Sorry, I encountered an error. Please try again.",
+                          },
+                        ]);
+                      });
+                  }
+                }}
+                className="bg-gray-100 hover:bg-gray-200 text-sm px-4 py-2 rounded-full transition-colors"
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Input area */}
       <div className="border-t p-3 bg-white">

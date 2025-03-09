@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/exercise-reset",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}

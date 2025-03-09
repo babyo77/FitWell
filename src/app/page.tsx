@@ -212,19 +212,10 @@ export default function Home() {
                 <item.icon className={`w-4 h-4 ${item.iconColor}`} />
                 <span className="text-sm ">{item.label}</span>
               </div>
-              <input
-                type="number"
-                value={item.value}
-                onChange={(e) =>
-                  updateValue(
-                    item.label
-                      .toLowerCase()
-                      .replace(" ", "") as keyof CaloriesState,
-                    Number(e.target.value)
-                  )
-                }
-                className="w-16 bg-transparent text-right text-sm  focus:outline-none"
-              />
+              <p className="w-16 bg-transparent text-right text-sm  focus:outline-none">
+                {" "}
+                {item.value}
+              </p>
             </div>
           ))}
         </div>

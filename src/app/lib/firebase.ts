@@ -1,6 +1,7 @@
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { initializeApp } from "firebase/app";
-
+import { Messaging, getMessaging } from "firebase/messaging";
+let messaging: Messaging | null = null;
 const firebaseConfig = {
   apiKey: "AIzaSyAQiqu-ckWeCrNb2QlemF4crmQ8XAAai9I",
   authDomain: "fitwell-403b7.firebaseapp.com",
@@ -12,5 +13,9 @@ const firebaseConfig = {
 };
 export const app = initializeApp(firebaseConfig);
 
+if ("serviceWorker" in navigator) {
+  messaging = getMessaging(app);
+}
+export { messaging };
 export const auth = getAuth();
 export const googleProvider = new GoogleAuthProvider();
