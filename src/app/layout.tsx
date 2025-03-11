@@ -75,6 +75,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" type="image/png" sizes="192x192" href="/icons/android-launchericon-192-192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/icons/android-launchericon-512-512.png" />
+        <link rel="apple-touch-icon" href="/icons/android-launchericon-192-192.png" />
         <link rel="shortcut icon" href="/favicon.ico" />
         <link rel="apple-touch-icon" href="/apple-icon.png" sizes="180x180" />
         {/* <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
