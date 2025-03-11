@@ -11,7 +11,6 @@ import {
   Droplets,
   Plus,
   Minus,
-  BedDouble,
   CircleDashed,
 } from "lucide-react";
 import { CircularProgressbar, buildStyles } from "react-circular-progressbar";
@@ -38,6 +37,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { waterIntakeDB } from "@/lib/waterIntakeDB";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRouter } from "next/navigation";
+import { updateStreaks } from "@/lib/updateStreaks";
 
 export default function Home() {
   const { user, calories, setCalories } = useAuth();
@@ -196,9 +196,15 @@ export default function Home() {
   };
 
   const handleAddWater = async () => {
-    const newAmount = waterIntake + 250; // Adds 250ml each time
-    setWaterIntake(newAmount);
-    await waterIntakeDB.saveWaterIntake(user?.uid!, newAmount);
+    if (!user?.uid) return;
+    
+    try {
+      await waterIntakeDB.saveWaterIntake(user.uid, waterIntake + 250);
+      setWaterIntake(prev => prev + 250);
+      await updateStreaks(user.uid);
+    } catch (error) {
+      console.error("Error updating water intake:", error);
+    }
   };
 
   const handleRemoveWater = async () => {

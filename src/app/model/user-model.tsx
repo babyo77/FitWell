@@ -27,6 +27,8 @@ interface User extends Document {
   calorieGoal: number;
   exercise: number;
   notify: string;
+  streaks: number;
+  lastStreak: Date | null;
 }
 
 // Schema for MongoDB
@@ -86,6 +88,14 @@ const userSchema = new mongoose.Schema(
     notify: {
       type: String,
     },
+    streaks: { 
+      type: Number, 
+      default: 0 
+    },
+    lastStreak: { 
+      type: Date, 
+      default: null 
+    }
   },
   {
     timestamps: true,

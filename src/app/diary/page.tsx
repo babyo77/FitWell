@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/auth-context";
-import { Plus, Search, X, Timer, Loader2, Trash2 } from "lucide-react";
+import { Plus, Search, X, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,7 +12,6 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerDescription,
-  DrawerClose,
 } from "@/components/ui/drawer";
 import {
   Popover,
@@ -27,6 +26,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { updateStreaks } from "@/lib/updateStreaks";
 
 interface FoodItem {
   _id: string;
@@ -195,6 +195,8 @@ function DiaryPage() {
         throw new Error("Failed to add food");
       }
 
+      await updateStreaks(user.uid);
+      
       // Refresh the diary
       const updatedDiary = await fetch(
         `/api/diary/${user.uid}?date=${date.toISOString()}`
