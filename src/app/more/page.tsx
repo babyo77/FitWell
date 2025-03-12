@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { getToken } from "firebase/messaging"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Mars, Venus, Users, Flame, Trophy, ChevronRight } from "lucide-react"
+import { Mars, Venus, Users, Flame, Trophy } from "lucide-react"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -163,138 +163,137 @@ export default function ProfileSettingsPage() {
   }
 
   return (
-    <div className="mx-auto pb-20 px-4 max-w-2xl">
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-        <Card className="border-none shadow-none mb-8">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-3xl font-bold">Profile Settings</CardTitle>
+    <div className="mx-auto pb-12 px-3 max-w-md">
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+        <Card className="border-none shadow-none mb-4">
+          <CardHeader className="pb-2 pt-4">
+            <CardTitle className="text-base font-bold">Profile Settings</CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-              <div className="flex flex-col items-center pb-6 gap-4">
-                <Avatar className="w-32 h-32 border-2 border-gray-200">
+            <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+              <div className="flex flex-col items-center pb-3 gap-2">
+                <Avatar className="w-20 h-20 border border-gray-200">
                   <AvatarImage src={form.watch("photoURL")} />
-                  <AvatarFallback className="text-4xl">{form.watch("displayName")?.charAt(0)}</AvatarFallback>
+                  <AvatarFallback className="text-xl">{form.watch("displayName")?.charAt(0)}</AvatarFallback>
                 </Avatar>
-                
               </div>
 
-              <div className="space-y-6">
-                <div className="space-y-2">
-                  <Label htmlFor="displayName" className="text-base font-medium">
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="displayName" className="text-sm font-medium">
                     Display Name
                   </Label>
                   <Input
                     id="displayName"
                     {...form.register("displayName")}
-                    className={`h-12 text-lg ${form.formState.errors.displayName ? "border-red-500" : ""}`}
+                    className={`h-9 text-sm ${form.formState.errors.displayName ? "border-red-500" : ""}`}
                   />
                   {form.formState.errors.displayName && (
-                    <p className="text-sm text-red-500">{form.formState.errors.displayName.message}</p>
+                    <p className="text-xs text-red-500">{form.formState.errors.displayName.message}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-base font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="email" className="text-sm font-medium">
                     Email
                   </Label>
-                  <Input id="email" type="email" disabled={true} {...form.register("email")} className="h-12 text-lg" />
+                  <Input id="email" type="email" disabled={true} {...form.register("email")} className="h-9 text-sm" />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="age" className="text-base font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="age" className="text-sm font-medium">
                     Age
                   </Label>
                   <Input
                     id="age"
                     type="text"
                     {...form.register("age")}
-                    className={`h-12 text-lg ${form.formState.errors.age ? "border-red-500" : ""}`}
+                    className={`h-9 text-sm ${form.formState.errors.age ? "border-red-500" : ""}`}
                   />
                   {form.formState.errors.age && (
-                    <p className="text-sm text-red-500">{form.formState.errors.age.message}</p>
+                    <p className="text-xs text-red-500">{form.formState.errors.age.message}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="gender" className="text-base font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="gender" className="text-sm font-medium">
                     Gender
                   </Label>
                   <Select
                     value={form.watch("gender")}
                     onValueChange={(value) => form.setValue("gender", value as "male" | "female" | "other")}
                   >
-                    <SelectTrigger className={`h-12 text-lg ${form.formState.errors.gender ? "border-red-500" : ""}`}>
+                    <SelectTrigger className={`h-9 text-sm ${form.formState.errors.gender ? "border-red-500" : ""}`}>
                       <SelectValue placeholder="Select gender" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="male" className="flex items-center gap-2">
-                        <Mars className="w-4 h-4 text-blue-500" />
+                        <Mars className="w-3 h-3 text-blue-500" />
                         Male
                       </SelectItem>
                       <SelectItem value="female" className="flex items-center gap-2">
-                        <Venus className="w-4 h-4 text-pink-500" />
+                        <Venus className="w-3 h-3 text-pink-500" />
                         Female
                       </SelectItem>
                       <SelectItem value="other" className="flex items-center gap-2">
-                        <Users className="w-4 h-4 text-purple-500" />
+                        <Users className="w-3 h-3 text-purple-500" />
                         Other
                       </SelectItem>
                     </SelectContent>
                   </Select>
                   {form.formState.errors.gender && (
-                    <p className="text-sm text-red-500">{form.formState.errors.gender.message}</p>
+                    <p className="text-xs text-red-500">{form.formState.errors.gender.message}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="height" className="text-base font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="height" className="text-sm font-medium">
                     Height (ft)
                   </Label>
                   <Input
                     id="height"
                     type="text"
                     {...form.register("height")}
-                    className={`h-12 text-lg ${form.formState.errors.height ? "border-red-500" : ""}`}
+                    className={`h-9 text-sm ${form.formState.errors.height ? "border-red-500" : ""}`}
                   />
                   {form.formState.errors.height && (
-                    <p className="text-sm text-red-500">{form.formState.errors.height.message}</p>
+                    <p className="text-xs text-red-500">{form.formState.errors.height.message}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="weight" className="text-base font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="weight" className="text-sm font-medium">
                     Weight (kg)
                   </Label>
                   <Input
                     id="weight"
                     type="text"
                     {...form.register("weight")}
-                    className={`h-12 text-lg ${form.formState.errors.weight ? "border-red-500" : ""}`}
+                    className={`h-9 text-sm ${form.formState.errors.weight ? "border-red-500" : ""}`}
                   />
                   {form.formState.errors.weight && (
-                    <p className="text-sm text-red-500">{form.formState.errors.weight.message}</p>
+                    <p className="text-xs text-red-500">{form.formState.errors.weight.message}</p>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="healthIssues" className="text-base font-medium">
+                <div className="space-y-1">
+                  <Label htmlFor="healthIssues" className="text-sm font-medium">
                     Health Issues
                   </Label>
                   <Textarea
                     id="healthIssues"
                     placeholder="List any health issues or conditions..."
                     {...form.register("healthIssues")}
-                    className={`min-h-[100px] text-lg ${form.formState.errors.healthIssues ? "border-red-500" : ""}`}
+                    className={`min-h-[60px] text-sm ${form.formState.errors.healthIssues ? "border-red-500" : ""}`}
                   />
                   {form.formState.errors.healthIssues && (
-                    <p className="text-sm text-red-500">{form.formState.errors.healthIssues.message}</p>
+                    <p className="text-xs text-red-500">{form.formState.errors.healthIssues.message}</p>
                   )}
                 </div>
 
                 {!notification && (
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="notifications" className="text-base font-medium">
+                    <Label htmlFor="notifications" className="text-sm font-medium">
                       Notifications
                     </Label>
                     <Switch
@@ -305,12 +304,12 @@ export default function ProfileSettingsPage() {
                   </div>
                 )}
 
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2 pt-2">
                   <Button
                     type="submit"
                     variant="default"
                     disabled={loading || form.formState.isSubmitting}
-                    className="w-full h-12 text-lg"
+                    className="w-full h-9 text-sm"
                   >
                     {loading ? "Saving..." : "Save Changes"}
                   </Button>
@@ -321,7 +320,7 @@ export default function ProfileSettingsPage() {
                       signOut(auth)
                       window.location.reload()
                     }}
-                    className="w-full h-12 text-lg"
+                    className="w-full h-9 text-sm"
                   >
                     Logout
                   </Button>
@@ -331,34 +330,32 @@ export default function ProfileSettingsPage() {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-none mt-8">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              <Flame className="w-6 h-6 text-orange-500" />
+        <Card className="border-none shadow-none mt-4">
+          <CardHeader className="py-2">
+            <CardTitle className="text-base font-bold flex items-center gap-1">
+              <Flame className="w-4 h-4 text-orange-500" />
               Your Streaks
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between bg-gradient-to-r from-orange-400 to-red-500 rounded-xl p-4 text-white">
-              <div className="flex items-center gap-4">
-                <div className="bg-white rounded-full p-2">
-                  <Trophy className="w-8 h-8 text-orange-500" />
+            <div className="flex items-center justify-between bg-gradient-to-r from-orange-400 to-red-500 rounded-lg p-3 text-white">
+              <div className="flex items-center gap-3">
+                <div className="bg-white rounded-full p-1">
+                  <Trophy className="w-5 h-5 text-orange-500" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-semibold">Current Streak</h3>
-                  <p className="text-sm opacity-80">Keep it up!</p>
+                  <h3 className="text-sm font-semibold">Current Streak</h3>
+                  <p className="text-xs opacity-80">Keep it up!</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-4xl font-bold">{streaks}</span>
-                <ChevronRight className="w-6 h-6" />
+              <div className="flex items-center gap-1">
+                <span className="text-2xl font-bold">{streaks}</span>
               </div>
             </div>
-            <p className="text-center mt-4 text-gray-600">Consecutive days of meeting your goals</p>
+            <p className="text-center mt-2 text-xs text-gray-600">Consecutive days of meeting your goals</p>
           </CardContent>
         </Card>
       </motion.div>
     </div>
   )
 }
-

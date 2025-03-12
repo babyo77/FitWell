@@ -21,7 +21,7 @@ import {
   Pie,
   Cell,
 } from "recharts"
-import { ArrowUpRight, ArrowDownRight, TrendingUp, BarChart2, PieChartIcon, Utensils, Flame, Info } from "lucide-react"
+import { ArrowUpRight, ArrowDownRight, TrendingUp, BarChart2, PieChartIcon, Utensils, Flame, Info } from 'lucide-react'
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884d8"]
 
@@ -107,22 +107,57 @@ export default function TrendsPage() {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.6, ease: "easeOut" }}
         className="flex flex-col gap-6"
       >
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Trends & Insights</h1>
-            <p className="text-muted-foreground">Track your progress and get personalized insights</p>
+            <h1 className="text-4xl font-bold">Trends & Insights</h1>
+            <p className="text-muted-foreground mt-1">Track your progress and get personalized insights</p>
           </div>
-          <Tabs value={period} onValueChange={(value) => setPeriod(value as "week" | "month" | "year")}>
-            <TabsList>
-              <TabsTrigger value="week">Week</TabsTrigger>
-              <TabsTrigger value="month">Month</TabsTrigger>
-              <TabsTrigger value="year">Year</TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="relative self-start">
+            <Tabs
+              value={period}
+              onValueChange={(value) => setPeriod(value as "week" | "month" | "year")}
+              className="relative z-10"
+            >
+              <TabsList className="rounded-full bg-muted/80 p-1 relative">
+                <TabsTrigger
+                  value="week"
+                  className="rounded-full px-6 py-1.5 transition-all duration-500 ease-in-out relative z-10"
+                >
+                  Week
+                </TabsTrigger>
+                <TabsTrigger
+                  value="month"
+                  className="rounded-full px-6 py-1.5 transition-all duration-500 ease-in-out relative z-10"
+                >
+                  Month
+                </TabsTrigger>
+                <TabsTrigger
+                  value="year"
+                  className="rounded-full px-6 py-1.5 transition-all duration-500 ease-in-out relative z-10"
+                >
+                  Year
+                </TabsTrigger>
+                <motion.div
+                  className="absolute top-1 bottom-1 rounded-full bg-white shadow-sm z-0"
+                  initial={false}
+                  animate={{
+                    left: period === "week" ? "0%" : period === "month" ? "33.333%" : "66.666%",
+                    width: "33.333%",
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 300,
+                    damping: 30,
+                    mass: 1,
+                  }}
+                />
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
         {loading ? (
@@ -142,7 +177,11 @@ export default function TrendsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.1,
+                  ease: "easeOut",
+                }}
               >
                 <Card>
                   <CardHeader className="pb-2">
@@ -176,7 +215,11 @@ export default function TrendsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.2 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.2,
+                  ease: "easeOut",
+                }}
               >
                 <Card>
                   <CardHeader className="pb-2">
@@ -208,7 +251,11 @@ export default function TrendsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.3 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.3,
+                  ease: "easeOut",
+                }}
               >
                 <Card>
                   <CardHeader className="pb-2">
@@ -244,7 +291,11 @@ export default function TrendsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.4 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.4,
+                  ease: "easeOut",
+                }}
               >
                 <Card className="h-full">
                   <CardHeader>
@@ -280,7 +331,11 @@ export default function TrendsPage() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 }}
+                transition={{
+                  duration: 0.5,
+                  delay: 0.5,
+                  ease: "easeOut",
+                }}
               >
                 <Card className="h-full">
                   <CardHeader>
@@ -321,7 +376,11 @@ export default function TrendsPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.6 }}
+              transition={{
+                duration: 0.5,
+                delay: 0.6,
+                ease: "easeOut",
+              }}
             >
               <Card>
                 <CardHeader>
@@ -361,7 +420,11 @@ export default function TrendsPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3, delay: 0.7 }}
+              transition={{
+                duration: 0.5,
+                delay: 0.7,
+                ease: "easeOut",
+              }}
             >
               <Card>
                 <CardHeader>
@@ -397,4 +460,3 @@ export default function TrendsPage() {
     </div>
   )
 }
-

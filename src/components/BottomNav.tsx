@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button"
 import { useState, useRef, useCallback } from "react"
 import { usePathname } from "next/navigation"
 import Webcam from "react-webcam"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion } from "framer-motion"
 import { FoodAnalysisDrawer, type AnalysisResponse } from "./FoodAnalysisDrawer"
 
 interface CameraCaptureProps {
@@ -103,44 +103,38 @@ function CameraCapture({ onClose }: CameraCaptureProps) {
   }
 
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 bg-black"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.9 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Webcam
-          ref={webcamRef}
-          screenshotFormat="image/jpeg"
-          videoConstraints={videoConstraints}
-          className="h-full w-full object-cover"
-        />
-        <motion.button
-          onClick={handleClose}
-          className="absolute top-4 right-4 text-white z-10"
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-        >
-          <X className="h-6 w-6" />
-        </motion.button>
-        <motion.button
+    <motion.div
+      className="fixed inset-0 z-[100] bg-black"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+    >
+      <Webcam
+        ref={webcamRef}
+        screenshotFormat="image/jpeg"
+        videoConstraints={videoConstraints}
+        className="h-full w-full object-cover"
+      />
+
+      {/* Camera frame guide */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div className="w-4/5 aspect-square border-2 border-white/50 rounded-lg border-dashed"></div>
+      </div>
+
+      <button onClick={handleClose} className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/40 text-white">
+        <X className="h-6 w-6" />
+      </button>
+
+      <div className="absolute bottom-0 left-0 right-0 flex flex-col items-center gap-4 p-8 bg-gradient-to-t from-black/50 to-transparent">
+        <p className="text-white/70 text-sm">Position your food in the frame</p>
+        <button
           onClick={capture}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white text-black px-8 py-3 rounded-full z-10"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          initial={{ y: 100 }}
-          animate={{ y: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 25,
-          }}
+          className="bg-white text-black px-8 py-3 rounded-full font-medium flex items-center gap-2"
         >
-          Capture
-        </motion.button>
-      </motion.div>
+          <Camera className="h-5 w-5" />
+          Capture Food
+        </button>
+      </div>
 
       <Drawer
         open={showDrawer}
@@ -159,7 +153,7 @@ function CameraCapture({ onClose }: CameraCaptureProps) {
           onClose={handleClose}
         />
       </Drawer>
-    </AnimatePresence>
+    </motion.div>
   )
 }
 
@@ -285,16 +279,21 @@ export default function BottomNav() {
               </button>
             </DrawerTrigger>
             <DrawerContent>
-              <DrawerHeader>
+              <DrawerHeader className="text-center">
                 <DrawerTitle>Add food to your diary</DrawerTitle>
                 <DrawerDescription>Scan your food to get the nutritional information</DrawerDescription>
               </DrawerHeader>
               <div className="mx-auto w-full max-w-sm p-4 pt-0">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                   <DrawerClose asChild>
-                    <Button variant="outline" size="lg" className="w-full" onClick={() => setShowCamera(true)}>
+                    <Button
+                      variant="outline"
+                      size="lg"
+                      className="w-full bg-blue-50 hover:bg-blue-100 border-blue-100"
+                      onClick={() => setShowCamera(true)}
+                    >
                       <Camera className="mr-2 h-5 w-5" />
-                      Scan
+                      Scan Food
                     </Button>
                   </DrawerClose>
 
@@ -308,12 +307,12 @@ export default function BottomNav() {
 
                   <Button
                     variant="outline"
-                    size={"lg"}
-                    className="w-full"
+                    size="lg"
+                    className="w-full bg-orange-50 hover:bg-orange-100 border-orange-100"
                     onClick={() => fileInputRef.current?.click()}
                   >
                     <Upload className="mr-2 h-5 w-5" />
-                    Upload
+                    Upload Photo
                   </Button>
                 </div>
               </div>
