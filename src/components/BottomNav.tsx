@@ -1,18 +1,10 @@
-"use client";
+"use client"
 
-import { useAuth } from "@/context/auth-context";
-import Link from "next/link";
-import {
-  Camera,
-  Upload,
-  X,
-  Home,
-  ClipboardList,
-  Plus,
-  MessageSquare,
-  MoreHorizontal,
-  ScanEye,
-} from "lucide-react";
+import type React from "react"
+
+import { useAuth } from "@/context/auth-context"
+import Link from "next/link"
+import { Camera, Upload, X, Home, ClipboardList, MessageSquare, MoreHorizontal, ScanEye } from "lucide-react"
 import {
   Drawer,
   DrawerContent,
@@ -21,99 +13,94 @@ import {
   DrawerTitle,
   DrawerDescription,
   DrawerClose,
-} from "@/components/ui/drawer";
-import { Button } from "@/components/ui/button";
-import { useState, useRef, useEffect, useCallback } from "react";
-import { usePathname } from "next/navigation";
-import Webcam from "react-webcam";
-import { motion, AnimatePresence } from "framer-motion";
-import { FoodAnalysisDrawer, AnalysisResponse } from "./FoodAnalysisDrawer";
+} from "@/components/ui/drawer"
+import { Button } from "@/components/ui/button"
+import { useState, useRef, useCallback } from "react"
+import { usePathname } from "next/navigation"
+import Webcam from "react-webcam"
+import { motion, AnimatePresence } from "framer-motion"
+import { FoodAnalysisDrawer, type AnalysisResponse } from "./FoodAnalysisDrawer"
 
 interface CameraCaptureProps {
-  onClose: () => void;
+  onClose: () => void
 }
 
 function CameraCapture({ onClose }: CameraCaptureProps) {
-  const webcamRef = useRef<Webcam>(null);
-  const [showDrawer, setShowDrawer] = useState(false);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(
-    null
-  );
+  const webcamRef = useRef<Webcam>(null)
+  const [showDrawer, setShowDrawer] = useState(false)
+  const [capturedImage, setCapturedImage] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null)
 
   const videoConstraints = {
     facingMode: { exact: "environment" },
     width: { ideal: 1920 },
     height: { ideal: 1080 },
-  };
+  }
 
   const capture = useCallback(() => {
-    const imageSrc = webcamRef.current?.getScreenshot();
+    const imageSrc = webcamRef.current?.getScreenshot()
     if (imageSrc) {
-      setCapturedImage(imageSrc);
-      setShowDrawer(true);
+      setCapturedImage(imageSrc)
+      setShowDrawer(true)
     }
-  }, []);
+  }, [])
 
   const handleAnalyze = async (imageData: string) => {
     try {
-      setIsLoading(true);
-      const base64Response = await fetch(imageData);
-      const blob = await base64Response.blob();
+      setIsLoading(true)
+      const base64Response = await fetch(imageData)
+      const blob = await base64Response.blob()
 
-      const formData = new FormData();
-      formData.append("image", blob, "food.png");
+      const formData = new FormData()
+      formData.append("image", blob, "food.png")
 
-      const response = await fetch(
-        "https://fitwell-backend.onrender.com/calorie/analyze/",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("https://fitwell-backend.onrender.com/calorie/analyze/", {
+        method: "POST",
+        body: formData,
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
         setAnalysisResult({
           calories_info: { foods: [] },
           error: data.message || "Failed to analyze image",
-        });
-        return;
+        })
+        return
       }
 
       if (!data.calories_info?.foods?.length) {
         setAnalysisResult({
           calories_info: { foods: [] },
           error: "No food detected in the image",
-        });
-        return;
+        })
+        return
       }
 
-      setAnalysisResult(data);
+      setAnalysisResult(data)
     } catch (error) {
       setAnalysisResult({
         calories_info: { foods: [] },
         error: "Something went wrong. Please try again.",
-      });
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleClose = () => {
-    setShowDrawer(false);
-    setCapturedImage(null);
-    setAnalysisResult(null);
-    onClose();
-  };
+    setShowDrawer(false)
+    setCapturedImage(null)
+    setAnalysisResult(null)
+    onClose()
+  }
 
   const handleRetake = () => {
-    setShowDrawer(false);
-    setCapturedImage(null);
-    setAnalysisResult(null);
-  };
+    setShowDrawer(false)
+    setCapturedImage(null)
+    setAnalysisResult(null)
+  }
 
   return (
     <AnimatePresence>
@@ -159,7 +146,7 @@ function CameraCapture({ onClose }: CameraCaptureProps) {
         open={showDrawer}
         onOpenChange={(open) => {
           if (!open) {
-            handleRetake();
+            handleRetake()
           }
         }}
       >
@@ -173,7 +160,7 @@ function CameraCapture({ onClose }: CameraCaptureProps) {
         />
       </Drawer>
     </AnimatePresence>
-  );
+  )
 }
 
 const NavLink = ({
@@ -182,10 +169,10 @@ const NavLink = ({
   label,
   isActive,
 }: {
-  href: string;
-  icon: any;
-  label: string;
-  isActive: boolean;
+  href: string
+  icon: any
+  label: string
+  isActive: boolean
 }) => (
   <Link
     href={href}
@@ -194,11 +181,7 @@ const NavLink = ({
     }`}
   >
     <Icon className={`w-5 h-5 transition-all ${isActive ? "scale-110" : ""}`} />
-    <span
-      className={`text-xs mt-1 transition-all ${isActive ? "font-medium" : ""}`}
-    >
-      {label}
-    </span>
+    <span className={`text-xs mt-1 transition-all ${isActive ? "font-medium" : ""}`}>{label}</span>
     {isActive && (
       <motion.div
         layoutId="activeTab"
@@ -207,106 +190,91 @@ const NavLink = ({
       />
     )}
   </Link>
-);
+)
 
 export default function BottomNav() {
-  const { user } = useAuth();
-  const pathname = usePathname();
-  const [showCamera, setShowCamera] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
-  const [showUploadDrawer, setShowUploadDrawer] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(
-    null
-  );
+  const { user } = useAuth()
+  const pathname = usePathname()
+  const [showCamera, setShowCamera] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [showUploadDrawer, setShowUploadDrawer] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResponse | null>(null)
 
   const handleAnalyze = async (imageData: string) => {
     try {
-      setIsUploading(true);
-      const base64Response = await fetch(imageData);
-      const blob = await base64Response.blob();
+      setIsUploading(true)
+      const base64Response = await fetch(imageData)
+      const blob = await base64Response.blob()
 
-      const formData = new FormData();
-      formData.append("image", blob, "food.png");
+      const formData = new FormData()
+      formData.append("image", blob, "food.png")
 
-      const response = await fetch(
-        "https://fitwell-backend.onrender.com/calorie/analyze/",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+      const response = await fetch("https://fitwell-backend.onrender.com/calorie/analyze/", {
+        method: "POST",
+        body: formData,
+      })
 
-      const data = await response.json();
+      const data = await response.json()
 
       if (!response.ok) {
         setAnalysisResult({
           calories_info: { foods: [] },
           error: data.message || "Failed to analyze image",
-        });
-        return;
+        })
+        return
       }
 
       if (!data.calories_info?.foods?.length) {
         setAnalysisResult({
           calories_info: { foods: [] },
           error: "No food detected in the image",
-        });
-        return;
+        })
+        return
       }
 
-      setAnalysisResult(data);
+      setAnalysisResult(data)
     } catch (error) {
       setAnalysisResult({
         calories_info: { foods: [] },
         error: "Something went wrong. Please try again.",
-      });
+      })
     } finally {
-      setIsUploading(false);
+      setIsUploading(false)
     }
-  };
+  }
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      const reader = new FileReader();
+      const reader = new FileReader()
       reader.onload = (e) => {
-        const imageData = e.target?.result as string;
-        setUploadedImage(imageData);
-        setShowUploadDrawer(true);
-      };
-      reader.readAsDataURL(file);
+        const imageData = e.target?.result as string
+        setUploadedImage(imageData)
+        setShowUploadDrawer(true)
+      }
+      reader.readAsDataURL(file)
     }
-  };
+  }
 
   const handleCloseUpload = () => {
-    setShowUploadDrawer(false);
-    setUploadedImage(null);
-    setAnalysisResult(null);
+    setShowUploadDrawer(false)
+    setUploadedImage(null)
+    setAnalysisResult(null)
     if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+      fileInputRef.current.value = ""
     }
-  };
+  }
 
-  if (!user) return null;
+  if (!user) return null
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-sm backdrop-blur-lg bg-opacity-90">
         <div className="flex justify-around items-center max-w-md mx-auto px-4">
-          <NavLink
-            href="/"
-            icon={Home}
-            label="Home"
-            isActive={pathname === "/"}
-          />
+          <NavLink href="/" icon={Home} label="Home" isActive={pathname === "/"} />
 
-          <NavLink
-            href="/diary"
-            icon={ClipboardList}
-            label="Diary"
-            isActive={pathname === "/diary"}
-          />
+          <NavLink href="/diary" icon={ClipboardList} label="Diary" isActive={pathname === "/diary"} />
 
           <Drawer>
             <DrawerTrigger asChild>
@@ -319,19 +287,12 @@ export default function BottomNav() {
             <DrawerContent>
               <DrawerHeader>
                 <DrawerTitle>Add food to your diary</DrawerTitle>
-                <DrawerDescription>
-                  Scan your food to get the nutritional information
-                </DrawerDescription>
+                <DrawerDescription>Scan your food to get the nutritional information</DrawerDescription>
               </DrawerHeader>
               <div className="mx-auto w-full max-w-sm p-4 pt-0">
                 <div className="flex flex-col gap-4">
                   <DrawerClose asChild>
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      className="w-full"
-                      onClick={() => setShowCamera(true)}
-                    >
+                    <Button variant="outline" size="lg" className="w-full" onClick={() => setShowCamera(true)}>
                       <Camera className="mr-2 h-5 w-5" />
                       Scan
                     </Button>
@@ -359,19 +320,9 @@ export default function BottomNav() {
             </DrawerContent>
           </Drawer>
 
-          <NavLink
-            href="/chat"
-            icon={MessageSquare}
-            label="Chat"
-            isActive={pathname === "/chat"}
-          />
+          <NavLink href="/chat" icon={MessageSquare} label="Assistant" isActive={pathname === "/chat"} />
 
-          <NavLink
-            href="/more"
-            icon={MoreHorizontal}
-            label="More"
-            isActive={pathname === "/more"}
-          />
+          <NavLink href="/more" icon={MoreHorizontal} label="More" isActive={pathname === "/more"} />
         </div>
       </nav>
 
@@ -379,7 +330,7 @@ export default function BottomNav() {
         open={showUploadDrawer}
         onOpenChange={(open) => {
           if (!open) {
-            handleCloseUpload();
+            handleCloseUpload()
           }
         }}
       >
@@ -396,10 +347,11 @@ export default function BottomNav() {
       {showCamera && (
         <CameraCapture
           onClose={() => {
-            setShowCamera(false);
+            setShowCamera(false)
           }}
         />
       )}
     </>
-  );
+  )
 }
+
