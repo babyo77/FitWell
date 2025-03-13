@@ -84,7 +84,7 @@ export default function Home() {
               className="bg-gradient-to-r from-emerald-500/90 to-green-500/90 text-white backdrop-blur-sm hover:from-emerald-600/90 hover:to-green-600/90 shadow-sm transition-all duration-200"
               onClick={() => router.push("/login")}
             >
-              Get Started now
+              Get Started 
             </Button>
           </div>
         </div>
