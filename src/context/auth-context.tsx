@@ -69,7 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (currentUser) {
         const userDoc = await fetch(`/api/user?uid=${currentUser.uid}`);
         if (!userDoc.ok) {
-          router.push("/login");
+          router.push("/");
           setLoading(false);
           return;
         }
@@ -80,12 +80,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           router.push("/");
         }
       } else {
-        router.push("/login");
+        setUser(null);
+        if (pathname !== "/") {
+          router.push("/");
+        }
       }
       setLoading(false);
     });
 
-    return () => unsubscribe(); // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
 
   return (

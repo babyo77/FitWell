@@ -1,710 +1,490 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
+import { motion, useScroll, useTransform } from "framer-motion"
 import {
-  Target,
-  Utensils,
-  GanttChart,
-  Dumbbell,
-  Edit2,
-  Droplets,
-  Plus,
-  Minus,
-  CircleDashed,
-  Trophy,
-  TrendingUp,
-  MessageSquare,
   ArrowRight,
+  CheckCircle2,
+  Dumbbell,
+  Droplets,
+  Brain,
+  MessageSquare,
+  LineChart,
+  Apple,
+  ChevronDown,
 } from "lucide-react"
-import { CircularProgressbar, buildStyles } from "react-circular-progressbar"
-import "react-circular-progressbar/dist/styles.css"
-import { Progress } from "@/components/ui/progress"
-import { type CaloriesState, type MacroData, useAuth } from "@/context/auth-context"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { toast } from "sonner"
-import {
-  Drawer,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { waterIntakeDB } from "@/lib/waterIntakeDB"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useRouter } from "next/navigation"
-import { updateStreaks } from "@/lib/updateStreaks"
+import { useAuth } from "@/context/auth-context"
+import { useEffect, useState } from "react"
 
 export default function Home() {
-  const { user, calories, setCalories } = useAuth()
-  const [newGoal, setNewGoal] = useState<number>(1700)
-  const [waterIntake, setWaterIntake] = useState(0) // Will now store ml
-  const [waterGoal] = useState(2500) // 2.5L in ml as default goal
-
+  const { user, loading } = useAuth()
   const router = useRouter()
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
 
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      if (!user?.uid) return
-
-      try {
-        // Fetch user data including calorie goal
-        const userResponse = await fetch(`/api/user?uid=${user.uid}`)
-        const userData = await userResponse.json()
-
-        if (userResponse.ok && userData.user) {
-          const newBaseGoal = userData.user.calorieGoal || calories.baseGoal
-          setCalories((prev) => ({
-            ...prev,
-            baseGoal: newBaseGoal,
-          }))
-          setNewGoal(newBaseGoal)
-        }
-
-        const fetchTodaysFoodIntake = async () => {
-          const response = await fetch(`/api/diary/${user.uid}`)
-          const data = await response.json()
-
-          if (response.ok && data) {
-            const totalCalories = Math.max(data.totalCalories - user?.exercise || 0, 0)
-
-            let totalCarbs = 0
-            let totalProtein = 0
-            let totalFat = 0
-
-            const processMeal = (foods: any[]) => {
-              foods.forEach((food) => {
-                totalCarbs += Number.parseInt(food.carbs || "0")
-                totalProtein += Number.parseInt(food.protein || food.protien || "0")
-                totalFat += Number.parseInt(food.fat || "0")
-              })
-            }
-
-            if (data.breakfast?.foods) processMeal(data.breakfast.foods)
-            if (data.lunch?.foods) processMeal(data.lunch.foods)
-            if (data.dinner?.foods) processMeal(data.dinner.foods)
-
-            setCalories((prev) => ({
-              ...prev,
-              intake: totalCalories,
-              exercise: user.exercise,
-              carbs: {
-                current: totalCarbs,
-              },
-              protein: {
-                current: totalProtein,
-              },
-              fat: {
-                current: totalFat,
-              },
-            }))
-          }
-        }
-
-        fetchTodaysFoodIntake()
-      } catch (error) {
-        console.error("Error fetching user data:", error)
-      }
-    }
-
-    fetchUserData()
-  }, [user?.uid])
+  const { scrollYProgress } = useScroll()
+  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
+  const scale = useTransform(scrollYProgress, [0, 0.2], [1, 0.95])
 
   useEffect(() => {
-    if (!user?.uid) return
-
-    const loadWaterIntake = async () => {
-      const amount = await waterIntakeDB.getWaterIntake(user.uid)
-      setWaterIntake(amount)
+    if (!loading && user) {
+      router.push("/dashboard")
     }
+  }, [user, loading, router])
 
-    // Check if day has changed at midnight
-    const checkDayChange = () => {
-      const now = new Date()
-      const hours = now.getHours()
-      const minutes = now.getMinutes()
+  if (loading) return null
 
-      // If it's midnight (00:00), reset the water intake
-      if (hours === 0 && minutes === 0) {
-        setWaterIntake(0)
-        waterIntakeDB.saveWaterIntake(user.uid, 0)
-      }
-    }
-
-    // Set up interval to check for day change
-    const intervalId = setInterval(checkDayChange, 60000) // Check every minute
-
-    // Initial load
-    loadWaterIntake()
-
-    // Clean up interval on unmount
-    return () => clearInterval(intervalId)
-  }, [user?.uid])
-
-  const updateValue = (key: keyof CaloriesState, value: number) => {
-    setCalories((prev) => ({
-      ...prev,
-      [key]: typeof prev[key] === "object" ? { ...(prev[key] as MacroData), current: value } : value,
-    }))
+  const toggleFaq = (index: number) => {
+    setOpenFaq(openFaq === index ? null : index)
   }
 
-  const remaining = Math.max(0, calories.baseGoal - calories.intake)
-  const progress = (calories.intake / calories.baseGoal) * 100
-
-  const updateCalorieGoal = async () => {
-    if (!user?.uid) return
-
-    try {
-      const response = await fetch("/api/user", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          uid: user.uid,
-          calorieGoal: newGoal,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error("Failed to update calorie goal")
-      }
-
-      setCalories((prev) => ({
-        ...prev,
-        baseGoal: newGoal,
-      }))
-      toast.success("Calorie goal updated!")
-    } catch (error) {
-      console.error("Error updating calorie goal:", error)
-      toast.error("Failed to update calorie goal")
-    }
-  }
-
-  const handleAddWater = async () => {
-    if (!user?.uid) return
-
-    try {
-      await waterIntakeDB.saveWaterIntake(user.uid, waterIntake + 250)
-      setWaterIntake((prev) => prev + 250)
-      await updateStreaks(user.uid)
-    } catch (error) {
-      console.error("Error updating water intake:", error)
-    }
-  }
-
-  const handleRemoveWater = async () => {
-    if (waterIntake >= 250) {
-      // Checks if at least 250ml to remove
-      const newAmount = waterIntake - 250 // Removes 250ml each time
-      setWaterIntake(newAmount)
-      await waterIntakeDB.saveWaterIntake(user?.uid!, newAmount)
-    }
-  }
-
-  // Feature cards for the bento grid
-  const featureCards = [
+  const faqs = [
     {
-      title: "Today's Meals",
-      description: "View your daily food diary",
-      icon: <Utensils className="w-5 h-5" />,
-      bgClass: "bg-gradient-to-r from-gray-100 via-gray-50 to-white-50",
-      iconBgClass: "",
-      route: "/plan",
-      size: "col-span-2",
+      question: "How does FitWell personalize my fitness journey?",
+      answer:
+        "FitWell uses your goals, preferences, and activity data to create personalized meal plans, workout recommendations, and health insights tailored specifically to you.",
     },
     {
-      title: "Challenges",
-      description: "Complete challenges to earn rewards",
-      icon: <Trophy className="w-5 h-5 text-purple-600" />,
-      bgClass: "bg-gradient-to-r from-purple-100 via-purple-50 to-white-50",
-      iconBgClass: "bg-purple-100",
-      route: "/challenges",
-      size: "col-span-1",
+      question: "Can I track my nutrition and calories with FitWell?",
+      answer:
+        "Yes! FitWell provides comprehensive nutrition tracking, including calories, macros (protein, carbs, fat), and micronutrients. You can log meals, scan food labels, and get detailed insights about your diet.",
     },
     {
-      title: "Trends",
-      description: "Track your progress over time",
-      icon: <TrendingUp className="w-5 h-5 text-blue-600" />,
-      bgClass: "bg-gradient-to-r from-blue-100 via-blue-50 to-white-50",
-      iconBgClass: "bg-blue-100",
-      route: "/trends",
-      size: "col-span-1",
+      question: "How does the AI health assistant work?",
+      answer:
+        "Our AI health assistant uses advanced algorithms to provide personalized advice, answer your fitness and nutrition questions, and offer guidance based on your specific goals and progress.",
     },
-    // {
-    //   title: "Assistant",
-    //   description: "Get personalized health advice",
-    //   icon: <MessageSquare className="w-5 h-5 text-green-600" />,
-    //   bgClass: "bg-gradient-to-r from-green-100 via-green-50 to-white-50",
-    //   iconBgClass: "bg-green-100",
-    //   route: "/chat",
-    //   size: "col-span-2",
-    // },
+    {
+      question: "Is FitWell suitable for beginners?",
+      answer:
+        "FitWell is designed for users at all fitness levels. Whether you're just starting your fitness journey or you're an experienced athlete, our app adapts to your needs and helps you reach your goals.",
+    },
+    {
+      question: "How does water intake tracking work?",
+      answer:
+        "FitWell makes it easy to track your daily water consumption with simple tap controls. You'll receive reminders throughout the day and can visualize your hydration progress against your personalized goals.",
+    },
   ]
 
   return (
-    <div className="min-h-screen leading-tight tracking-tight p-4 max-w-md mx-auto pb-24 space-y-5">
-      {/* Welcome section with text animation */}
-      <motion.div
-        className="flex items-center justify-between"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-      >
-        <div className="flex items-center gap-2">
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="relative cursor-pointer group"
-            onClick={() => router.push("/more")}
-          >
-            <Avatar className="w-10 h-10 border-2 border-transparent group-hover:border-primary transition-all">
-              <AvatarImage src={user?.photoURL} alt={user?.displayName} />
-              <AvatarFallback>{user?.displayName?.split(" ")[0]}</AvatarFallback>
-            </Avatar>
+    <div className="min-h-screen bg-white text-gray-900">
+      {/* Navigation */}
+      <header className="fixed top-0 z-50 w-full border-b border-gray-200/20 bg-white/70 backdrop-blur-lg shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)]">
+        <div className="container flex h-16 items-center justify-between px-4">
+          <Link className="flex items-center space-x-2 font-bold text-gray-800" href="/">
+            <Dumbbell className="h-6 w-6 text-emerald-500" />
+            <span>FitWell</span>
+          </Link>
+          <div className="flex items-center space-x-4">
+            <Link className="hidden text-sm text-gray-600 hover:text-emerald-500 transition-colors sm:block" href="/login">
+              Log In
+            </Link>
+            <Button
+              className="bg-gradient-to-r from-emerald-500/90 to-green-500/90 text-white backdrop-blur-sm hover:from-emerald-600/90 hover:to-green-600/90 shadow-sm transition-all duration-200"
+              onClick={() => router.push("/login")}
+            >
+              Get Started
+            </Button>
+          </div>
+        </div>
+      </header>
 
-          </motion.div>
-          <motion.h1
-            className="text-2xl font-bold"
+      {/* Hero Section */}
+      <section className="relative flex min-h-screen items-center justify-center overflow-hidden pt-16">
+        {/* Animated Elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Curved Lines */}
+          <svg className="absolute h-full w-full" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="grad1" x1="1" y1="0" x2="0" y2="0">
+                <stop offset="0%" stopColor="#10b981" stopOpacity="0" />
+                <stop offset="50%" stopColor="#10b981" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              </linearGradient>
+              <linearGradient id="grad2" x1="1" y1="0" x2="0" y2="0">
+                <stop offset="0%" stopColor="#002a1c" stopOpacity="0" />
+                <stop offset="50%" stopColor="#002a1c" stopOpacity="0.3" />
+                <stop offset="100%" stopColor="#002a1c" stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {/* Top Curves */}
+            <motion.path
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{
+                duration: 2,
+                ease: "easeInOut",
+                repeat: Number.POSITIVE_INFINITY,
+                repeatType: "loop",
+                repeatDelay: 1,
+              }}
+              d="M 100 100 Q 300 0 500 100 T 900 100"
+              fill="none"
+              stroke="url(#grad1)"
+              strokeWidth="1"
+            />
+            <motion.path
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{
+                duration: 2,
+                ease: "easeInOut",
+                repeat: Number.POSITIVE_INFINITY,
+                repeatType: "loop",
+                repeatDelay: 1,
+                delay: 0.5,
+              }}
+              d="M 0 200 Q 200 100 400 200 T 800 200"
+              fill="none"
+              stroke="url(#grad2)"
+              strokeWidth="1"
+            />
+            {/* Bottom Curves */}
+            <motion.path
+              initial={{ pathLength: 0, opacity: 0 }}
+              animate={{ pathLength: 1, opacity: 1 }}
+              transition={{
+                duration: 2,
+                ease: "easeInOut",
+                repeat: Number.POSITIVE_INFINITY,
+                repeatType: "loop",
+                repeatDelay: 1,
+                delay: 1,
+              }}
+              d="M 100 600 Q 300 500 500 600 T 900 600"
+              fill="none"
+              stroke="url(#grad1)"
+              strokeWidth="1"
+            />
+          </svg>
+
+          {/* Straight Lines */}
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.5 }}
+            transition={{ duration: 1 }}
+            className="absolute inset-0"
           >
-            Welcome back, {user?.displayName?.split(" ")[0]}
-          </motion.h1>
-        </div>
-        <motion.div
-          className="text-sm font-medium text-gray-500"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-        >
-          {new Date().toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
-        </motion.div>
-      </motion.div>
-
-      {/* Calories Card */}
-      <motion.div
-        className="text-black border rounded-3xl p-6 shadow-sm bg-white"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <motion.div
-          className="flex justify-between items-center mb-3"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h1 className="text-xl font-bold tracking-tight">Calories</h1>
-          <Button
-            size="sm"
-            variant="ghost"
-            className="h-8 w-8 p-0 hover:bg-gray-100 rounded-full"
-            onClick={() => {
-              setNewGoal(calories.baseGoal)
-              setIsDrawerOpen(true)
-            }}
-          >
-            <Edit2 className="h-4 w-4 text-gray-500" />
-          </Button>
-        </motion.div>
-
-        {/* Progress Circle with animated text */}
-        <div className="flex items-center justify-between">
-          <div className="w-[140px] h-[140px]">
-            <CircularProgressbar
-              value={calories.intake - calories.exercise}
-              maxValue={calories.baseGoal}
-              strokeWidth={5}
-              styles={buildStyles({
-                pathColor: "currentColor",
-                trailColor: "#e5e5e5",
-                strokeLinecap: "round",
-                textSize: "0px",
-              })}
-            />
-            {/* Overlay for centered content with animations */}
-            <div className="relative -mt-[140px] flex flex-col items-center justify-center h-[140px]">
-              <motion.span
-                className="text-3xl font-bold leading-none mb-1"
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.4, type: "spring", stiffness: 100 }}
-              >
-                {remaining}
-              </motion.span>
-              <motion.span
-                className="uppercase text-xs leading-tight font-medium tracking-tight"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-              >
-                REMAINING
-              </motion.span>
-            </div>
-          </div>
-
-          {/* Stats with staggered text animations */}
-          <motion.div
-            className="space-y-3.5 flex-1 ml-4"
-            initial="hidden"
-            animate="visible"
-            variants={{
-              hidden: { opacity: 0 },
-              visible: {
-                opacity: 1,
-                transition: {
-                  staggerChildren: 0.1,
-                  delayChildren: 0.6,
-                },
-              },
-            }}
-          >
-            <motion.div
-              className="flex justify-between items-center"
-              variants={{
-                hidden: { opacity: 0, y: 5 },
-                visible: { opacity: 1, y: 0 },
-              }}
-            >
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-blue-500" />
-                <span className="text-sm">Daily Goal</span>
-              </div>
-              <motion.span
-                className="text-sm font-medium"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.7 }}
-              >
-                {calories.baseGoal}
-              </motion.span>
-            </motion.div>
-
-            {/* Calories and Exercise stats with animations */}
-            {[
-              {
-                label: "Calories Intake",
-                value: calories.intake,
-                icon: Utensils,
-                iconColor: "text-green-500",
-              },
-              {
-                label: "Exercise",
-                value: calories.exercise,
-                icon: Dumbbell,
-                iconColor: "text-orange-500",
-              },
-            ].map((item, index) => (
+            {[...Array(3)].map((_, i) => (
               <motion.div
-                key={item.label}
-                className="flex justify-between items-center"
-                variants={{
-                  hidden: { opacity: 0, y: 5 },
-                  visible: { opacity: 1, y: 0 },
+                key={i}
+                initial={{ x: "100%", opacity: 0 }}
+                animate={{
+                  x: "-100%",
+                  opacity: [0, 0.5, 0.5, 0],
                 }}
-              >
-                <div className="flex items-center gap-2">
-                  <item.icon className={`w-4 h-4 ${item.iconColor}`} />
-                  <span className="text-sm">{item.label}</span>
-                </div>
-                <motion.p
-                  className="text-sm font-medium"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.8 + index * 0.1 }}
-                >
-                  {item.value}
-                </motion.p>
-              </motion.div>
+                transition={{
+                  duration: 2.5,
+                  delay: i * 0.2,
+                  repeat: Number.POSITIVE_INFINITY,
+                  repeatType: "loop",
+                  ease: "linear",
+                }}
+                className="absolute right-0"
+                style={{
+                  top: `${15 + i * 10}%`,
+                  height: "1px",
+                  width: "100%",
+                  background: `linear-gradient(90deg, transparent, ${i % 2 === 0 ? "#10b981" : "#34d399"}60, transparent)`,
+                }}
+              />
             ))}
           </motion.div>
         </div>
-      </motion.div>
 
-      {/* Feature Cards Bento Grid */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Challenges Card */}
-        <motion.div
-          className="bg-[#F8F2FF] p-4 rounded-2xl border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden group"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.3 }}
-          onClick={() => router.push("/challenges")}
-        >
-          <div className="flex items-start h-full">
-            <div className="flex-1">
-              <div className="bg-[#F3E6FF] w-10 h-10 rounded-xl flex items-center justify-center mb-3">
-                <Trophy className="w-5 h-5 text-purple-600" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-base mb-0.5">Challenges</h2>
-                <p className="text-sm text-gray-600 leading-tight">Complete challenges to earn rewards</p>
-              </div>
-            </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          </div>
-        </motion.div>
-
-        {/* Trends Card */}
-        <motion.div
-          className="bg-[#F2F8FF] p-4 rounded-2xl border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden group"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          onClick={() => router.push("/trends")}
-        >
-          <div className="flex items-start h-full">
-            <div className="flex-1">
-              <div className="bg-[#E6F0FF] w-10 h-10 rounded-xl flex items-center justify-center mb-3">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-base mb-0.5">Trends</h2>
-                <p className="text-sm text-gray-600 leading-tight">Track your progress over time</p>
-              </div>
-            </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          </div>
-        </motion.div>
-
-        {/* Assistant Card - Full Width */}
-        {/* <motion.div
-          className="col-span-2 bg-[#F2FFF7] p-4 rounded-2xl border cursor-pointer hover:shadow-md transition-shadow relative overflow-hidden group"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.02 }}
-          transition={{ duration: 0.3, delay: 0.2 }}
-          onClick={() => router.push("/chat")}
-        >
-          <div className="flex items-start h-full">
-            <div className="flex-1">
-              <div className="bg-[#E6FFE6] w-10 h-10 rounded-xl flex items-center justify-center mb-3">
-                <MessageSquare className="w-5 h-5 text-green-600" />
-              </div>
-              <div>
-                <h2 className="font-semibold text-base mb-0.5">Assistant</h2>
-                <p className="text-sm text-gray-600 leading-tight">Get personalized health advice</p>
-              </div>
-            </div>
-            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          </div>
-        </motion.div> */}
-      </div>
-
-      {/* Macros Section */}
-      <div>
-        <h2 className="text-xl font-bold mb-3">Macros</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {/* Carbs Card */}
+        {/* Animated Background */}
+        <div className="absolute inset-0 z-[1]">
           <motion.div
-            className="text-black border rounded-2xl p-4 hover:shadow-md transition-shadow bg-white"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <GanttChart className="w-4 h-4 text-purple-500" />
-              <h3 className="text-sm font-medium">Carbs</h3>
-            </div>
-            <div className="text-2xl font-semibold mb-1">{calories.carbs.current}g</div>
-            <Progress 
-            value={(calories.carbs.current / calories.baseGoal) * 100}
-  className="h-1.5 bg-purple-100 [&>div]:bg-purple-500"
-/>
-          </motion.div>
-
-          {/* Protein Card */}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 2 }}
+            className="absolute -left-1/4 top-1/4 h-96 w-96 rounded-full bg-green-500/10 blur-3xl"
+          />
           <motion.div
-            className="text-black border rounded-2xl p-4 hover:shadow-md transition-shadow bg-white"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2, delay: 0.1 }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <Dumbbell className="w-4 h-4 text-red-500" />
-              <h3 className="text-sm font-medium">Protein</h3>
-            </div>
-            <div className="text-2xl font-semibold mb-1">{calories.protein.current}g</div>
-            <Progress
-             value={(calories.protein.current / calories.baseGoal) * 100}
-              className="h-1.5 bg-red-100 [&>div]:bg-red-500"
-            />
-          </motion.div>
-
-          {/* Fat Card */}
-          <motion.div
-            className="text-black border rounded-2xl p-4 hover:shadow-md transition-shadow bg-white"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            transition={{ duration: 0.2, delay: 0.2 }}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <CircleDashed className="w-4 h-4 text-yellow-500" />
-              <h3 className="text-sm font-medium">Fat</h3>
-            </div>
-            <div className="text-2xl font-semibold mb-1">{calories.fat.current}g</div>
-            <Progress
-              value={(calories.fat.current / calories.baseGoal) * 100}
-              className="h-1.5 bg-yellow-100 [&>div]:bg-yellow-500"
-            />
-          </motion.div>
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 2, delay: 0.5 }}
+            className="absolute -right-1/4 top-1/2 h-96 w-96 rounded-full bg-emerald-500/10 blur-3xl"
+          />
         </div>
-      </div>
 
-      {/* Reminders Section */}
-      <div>
-        <h2 className="text-xl font-bold mb-3">Reminders</h2>
-        <div className="space-y-3">
-          {/* Water Tracking Card */}
+        {/* Updated Content */}
+        <motion.div 
+          style={{ opacity, scale }}
+          className="container relative z-[3] px-4 text-center"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.01 }}
-            transition={{ duration: 0.2, delay: 0.3 }}
+            transition={{ duration: 1 }}
+            className="mx-auto max-w-3xl space-y-8"
           >
-            <Card className="border rounded-2xl shadow-none bg-white">
-              <CardHeader className="pb-0 h-2">
-                <CardTitle className="flex items-center gap-2 p-0">
-                  <Droplets className="h-4 w-4 text-cyan-500" />
-                  <span className="text-sm font-medium">Water Intake</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <motion.div
-                  className="flex items-center justify-between"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                >
-                  <span className="text-xs">Daily Goal: 2500ml</span>
-                  <span className="text-xs font-medium">{waterIntake}ml / 2500ml</span>
-                </motion.div>
-
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 0.5, delay: 0.5 }}
-                >
-  <Progress
-  value={(waterIntake / waterGoal) * 100}
-  className="h-1.5 bg-blue-100 [&>div]:bg-blue-500"
-/>
-                </motion.div>
-
-                <motion.div
-                  className="flex items-center justify-between gap-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                >
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 rounded-full"
-                    onClick={handleRemoveWater}
-                    disabled={waterIntake <= 0}
-                  >
-                    <Minus className="h-3 w-3" />
-                  </Button>
-
-                  <div className="flex-1 text-center">
-                    <div className="text-2xl font-semibold">{waterIntake}</div>
-                    <div className="text-xs">ml today</div>
-                  </div>
-
-                  <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={handleAddWater}>
-                    <Plus className="h-3 w-3" />
-                  </Button>
-                </motion.div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          {/* Challenge Reminder Card */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.01 }}
-            transition={{ duration: 0.2, delay: 0.4 }}
-          >
-            <Card className="border rounded-2xl shadow-none bg-white">
-              <CardHeader className="pb-0 h-2">
-                <CardTitle className="flex items-center gap-2 p-0">
-                  <Trophy className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm font-medium">Active Challenge</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center justify-between mt-4">
-                  <div>
-                    <h3 className="font-medium">5 Days Without Junk Food</h3>
-                    <p className="text-xs text-muted-foreground mt-1">2 days remaining</p>
-                  </div>
-                  <Button variant="outline" size="sm" className="text-xs" onClick={() => router.push("/challenges")}>
-                    View
-                  </Button>
-                </div>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span>Progress</span>
-                    <span>3/5 days</span>
-                  </div>
-                  <Progress 
-               value={(calories.protein.current / calories.baseGoal) * 100} 
-                  className="h-1.5 bg-purple-100 [&>div]:bg-purple-500" 
-                />        
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      </div>
-
-      <Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
-        <DrawerContent>
-          <DrawerHeader className="text-center">
-            <DrawerTitle>Update Daily Goal</DrawerTitle>
-            <DrawerDescription>Enter your new calorie goal below</DrawerDescription>
-          </DrawerHeader>
-          <div className="p-4 py-0 pb-3 space-y-6">
-            <Input
-              type="text"
-              value={newGoal}
-              onChange={(e) => setNewGoal(Number(e.target.value))}
-              className="text-center text-lg h-12"
-            />
-          </div>
-          <DrawerFooter className="pt-2">
-            <Button
-              className="w-full text-white"
-              onClick={async () => {
-                await updateCalorieGoal()
-                setIsDrawerOpen(false)
-              }}
-            >
-              Save changes
-            </Button>
-            <DrawerClose asChild>
-              <Button variant="outline" className="w-full">
-                Cancel
+            <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+              Your Personalized Fitness Journey
+            </h1>
+            <p className="mx-auto max-w-2xl text text-gray-600 sm:text-xl">
+              Track your meals, create custom diet plans, monitor your progress, and get AI-powered guidance all in one
+              place
+            </p>
+            <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
+              <Button
+                className="bg-gradient-to-r from-emerald-500 to-green-500 text-lg text-white hover:from-emerald-600 hover:to-green-600"
+                onClick={() => router.push("/login")}
+              >
+                Start Your Journey
+                <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </DrawerClose>
-          </DrawerFooter>
-        </DrawerContent>
-      </Drawer>
+              
+            </div>
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* Updated Features Section */}
+      <section id="features" className="relative z-10 border-t border-gray-200 bg-gray-50 py-24">
+        <div className="container px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.8 }}
+            className="mb-16 text-center"
+          >
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+              Why Choose FitWell?
+            </h2>
+            <p className="mt-4 text-gray-600">Experience fitness tracking that works for you</p>
+          </motion.div>
+
+          {/* Updated Bento Grid Layout */}
+          <div className="grid grid-cols-2 gap-4 md:gap-6 auto-rows-[200px] sm:auto-rows-[250px]">
+            {/* First Row: Two Square Cards */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.5 }}
+              whileHover={{ scale: 1.02 }}
+              className="group rounded-3xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 flex flex-col"
+            >
+              <div className="flex flex-col items-center text-center mb-3">
+                <div className="rounded-xl bg-green-100 p-2 mb-2">
+                  <LineChart className="h-4 w-4 text-green-600" />
+                </div>
+                <h3 className="text-sm font-bold">Nutrition Tracking</h3>
+              </div>
+              <p className="text-gray-600 text-sm md:text-base line-clamp-3">
+                Monitor your daily intake of calories, proteins, fats, and carbs with detailed insights
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              whileHover={{ scale: 1.02 }}
+              className="group rounded-3xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 flex flex-col"
+            >
+              <div className="flex flex-col items-center text-center mb-3">
+                <div className="rounded-xl bg-blue-100 p-2 mb-2">
+                  <Droplets className="h-4 w-4 text-blue-600" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold">Water Intake</h3>
+              </div>
+              <p className="text-gray-600 text-sm md:text-base line-clamp-3">
+                Track your hydration levels and get reminders to stay properly hydrated throughout the day
+              </p>
+            </motion.div>
+
+            {/* Second Row: Rectangle Card */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              whileHover={{ scale: 1.02 }}
+              className="col-span-2 group rounded-3xl border border-gray-200 bg-white p-6 md:p-8 shadow-sm transition-all hover:shadow-md hover:border-emerald-200"
+            >
+              <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6 h-full">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-emerald-100 p-2">
+                    <Apple className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <h3 className="text-xl md:text-2xl font-bold">Custom Diet Plans</h3>
+                </div>
+                <div className="flex-1">
+                  <p className="text-gray-600 text-sm md:text-base">
+                    Create personalized meal plans based on your goals, preferences, and dietary restrictions. Our smart
+                    algorithm adapts to your progress and helps you stay on track with your nutrition goals.
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Third Row: Two Square Cards */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              whileHover={{ scale: 1.02 }}
+              className="group rounded-3xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 flex flex-col"
+            >
+              <div className="flex flex-col items-center text-center mb-3">
+                <div className="rounded-xl bg-purple-100 p-2 mb-2">
+                  <MessageSquare className="h-4 w-4 text-purple-600" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold">AI Health Assistant</h3>
+              </div>
+              <p className="text-gray-600 text-sm md:text-base line-clamp-3">
+                Get personalized advice and answers to your fitness and nutrition questions
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: false, amount: 0.3 }}
+              transition={{ duration: 0.5, delay: 0.4 }}
+              whileHover={{ scale: 1.02 }}
+              className="group rounded-3xl border border-gray-200 bg-white p-4 md:p-6 shadow-sm transition-all hover:shadow-md hover:border-emerald-200 flex flex-col"
+            >
+              <div className="flex flex-col items-center text-center mb-3">
+                <div className="rounded-xl bg-indigo-100 p-2 mb-2">
+                  <Brain className="h-4 w-4 text-indigo-600" />
+                </div>
+                <h3 className="text-lg md:text-xl font-bold">Smart Recommendations</h3>
+              </div>
+              <p className="text-gray-600 text-sm md:text-base line-clamp-3">
+                Receive personalized recommendations based on your activity, goals, and progress
+              </p>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* Updated FAQ Section */}
+      <section className="relative z-10 border-t border-gray-200 bg-white py-24">
+        <div className="container px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.8 }}
+            className="mb-16 text-center"
+          >
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+              Frequently Asked Questions
+            </h2>
+            <p className="mt-4 text-gray-600">Everything you need to know about FitWell</p>
+          </motion.div>
+
+          <div className="mx-auto max-w-3xl">
+            {faqs.map((faq, index) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: false, amount: 0.3 }}
+                transition={{ duration: 0.6, delay: index * 0.1 }}
+                className="mb-4"
+              >
+                <button
+                  onClick={() => toggleFaq(index)}
+                  className={`w-full text-left p-6 rounded-xl border ${
+                    openFaq === index
+                      ? "border-emerald-200 bg-emerald-50"
+                      : "border-gray-200 hover:border-emerald-200 hover:bg-gray-50"
+                  } transition-all duration-200`}
+                >
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-semibold text-lg">{faq.question}</h3>
+                    <ChevronDown
+                      className={`h-5 w-5 text-emerald-500 transition-transform ${
+                        openFaq === index ? "rotate-180" : ""
+                      }`}
+                    />
+                  </div>
+                  {openFaq === index && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      transition={{ duration: 0.3 }}
+                      className="mt-4 text-gray-600"
+                    >
+                      {faq.answer}
+                    </motion.div>
+                  )}
+                </button>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Updated CTA Section */}
+      <section className="relative z-10 border-t border-gray-200 bg-gray-50 py-24">
+        <div className="container px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: false, amount: 0.3 }}
+            transition={{ duration: 0.8 }}
+            className="mx-auto max-w-3xl rounded-3xl border border-emerald-100 bg-gradient-to-r from-emerald-50 to-green-50 p-8 text-center shadow-sm md:p-12 lg:p-16"
+          >
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+              Ready to Transform Your Fitness?
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-gray-600">
+              Join thousands of users who have already improved their health and wellness with FitWell
+            </p>
+            <ul className="mx-auto mt-8 flex max-w-xl flex-col gap-4 text-left">
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <span className="text-gray-700">Personalized meal and workout plans</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <span className="text-gray-700">AI-powered health assistant</span>
+              </li>
+              <li className="flex items-center space-x-3">
+                <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                <span className="text-gray-700">Comprehensive nutrition tracking</span>
+              </li>
+            </ul>
+            <Button
+              className="mt-8 bg-gradient-to-r from-emerald-500 to-green-500 text-lg text-white hover:from-emerald-600 hover:to-green-600"
+              onClick={() => router.push("/login")}
+            >
+              Start Your Journey
+              <ArrowRight className="ml-2 h-5 w-5" />
+            </Button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Updated Footer */}
+      <motion.footer
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false }}
+        transition={{ duration: 0.6 }}
+        className="border-t border-gray-200 bg-white py-8"
+      >
+        <div className="container flex flex-col items-center justify-between space-y-4 px-4 md:flex-row md:space-y-0">
+          <div className="flex items-center space-x-2">
+            <Dumbbell className="h-6 w-6 text-emerald-500" />
+            <span className="font-bold">FitWell</span>
+          </div>
+          <p className="text-sm text-gray-500">© {new Date().getFullYear()} FitWell. All rights reserved.</p>
+          <div className="flex space-x-6">
+            
+          </div>
+        </div>
+      </motion.footer>
     </div>
   )
 }

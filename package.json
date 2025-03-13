@@ -27,6 +27,7 @@
     "date-fns": "^4.1.0",
     "firebase": "^11.4.0",
     "framer-motion": "^12.4.10",
+    "gsap": "^3.12.7",
     "lucide-react": "^0.479.0",
     "mongoose": "^8.12.1",
     "next": "15.2.1",
