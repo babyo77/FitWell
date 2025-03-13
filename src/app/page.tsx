@@ -68,7 +68,7 @@ export default function Home() {
   ]
 
   return (
-    <div className="min-h-screen bg-white text-gray-900">
+    <div className="min-h-screen bg-[#e9ecef] text-gray-900">
       {/* Navigation */}
       <header className="fixed top-0 z-50 w-full border-b border-gray-200/20 bg-white/70 backdrop-blur-lg shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07)]">
         <div className="container flex h-16 items-center justify-between px-4">
